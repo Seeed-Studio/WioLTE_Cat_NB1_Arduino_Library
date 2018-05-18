@@ -1,6 +1,7 @@
 # WioLTE_Cat_NB1_Arduino_Library
 THe Wio LTE Cat NB1 is boards combined with STM32F405RGT6 and the ublox SARA-R4 LTE Cat NB1 cellular module.
 
+![](https://raw.githubusercontent.com/SeeedDocument/Wio_LTE_Cat_M1_NB-IoT_Tracker/master/img/h4.png)
 
 Install USB drive
 ===
@@ -25,7 +26,7 @@ Change dfu driver
 Usage
 ===
 1. Install Arduino IDE. <br>
-2. Copy the URL below, open Arduino board manager install **Seeed STM32F4 Boards**.
+2. Copy the URL below, open Arduino board manager install **Seeed STM32F4 Boards version 1.2.0**.
 
 ```
 https://raw.githubusercontent.com/Seeed-Studio/Seeed_Platform/master/package_seeeduino_boards_index.json
