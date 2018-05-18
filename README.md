@@ -3,8 +3,7 @@
 
 The Wio LTE Cat NB1 is combined with **STM32F405RGT6** and external **ublox MAX MQ8** GNSS chip and the **ublox SARA-R4 LTE Cat NB1** cellular module.
 
-<img src=https://raw.githubusercontent.com/lanselambor/WioLTE_Cat_NB1_Arduino_Library/master/img/WioLTE_Cat_NB1_Front.jpg width=400>
-<img src=https://raw.githubusercontent.com/lanselambor/WioLTE_Cat_NB1_Arduino_Library/master/img/WioLTE_Cat_NB1_Back.jpg width=450>
+<img src=https://raw.githubusercontent.com/lanselambor/WioLTE_Cat_NB1_Arduino_Library/master/img/WioLTE_Cat_NB1_Front.jpg width=400><img src=https://raw.githubusercontent.com/lanselambor/WioLTE_Cat_NB1_Arduino_Library/master/img/WioLTE_Cat_NB1_Back.jpg width=450>
 
 
 
