@@ -1,0 +1,52 @@
+
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+CMD	KEYWORD1
+DATA	KEYWORD1
+CLOSED	KEYWORD1
+TCP	KEYWORD1
+UDP	KEYWORD1
+RET_OK	KEYWORD1
+RET_ERR	KEYWORD1
+CTS_PIN	KEYWORD1
+RTS_PIN	KEYWORD1
+RGB_LED_PWR_PIN	KEYWORD1
+SD_PWR_PIN	KEYWORD1
+BAT_C_PIN	KEYWORD1
+RGB_LED_PIN	KEYWORD1
+MODULE_PWR_PIN	KEYWORD1
+ENABLE_VCCB_PIN	KEYWORD1    
+GNSS_PWR_PIN	KEYWORD1
+RX_LED_PIN	KEYWORD1
+TX_LED_PIN	KEYWORD1
+GNSS_1PPS_PIN	KEYWORD1
+GROVE_PWR_PIN	KEYWORD1
+GNSS_RST_PIN	KEYWORD1
+GNSS_INT_PIN	KEYWORD1
+RESET_MODULE_PIN	KEYWORD1
+PWR_KEY_PIN	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+WS2812	KEYWORD2
+UBLOX_SARA_R4_Ethernet	KEYWORD2
+UBLOX_SARA_R4_GNSS	KEYWORD2
+Ublox_sara_r4	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+
+
+
