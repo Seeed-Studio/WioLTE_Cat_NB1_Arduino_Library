@@ -69,16 +69,6 @@ public:
      */
     bool network_Init(void);
 
-    /** Join APN
-     * @param apn name
-     * @param apn user name
-     * @param apn passwd
-     * @return
-     *        true Jion APN successfully
-     *        false failed to join APN
-     */
-    bool join(const char *apn, const char *username = "", const char *passwd = "");
-
     /** Get IP address
      *  @return
      *      true on successfully
@@ -96,70 +86,61 @@ public:
      *  @return
      *       IP string
      */
-    char* recoverIP();
+    // char* recoverIP();
 
-    /** check network is OK or not
-     *  @returns
-     *      true on success
-     *      false on error
-     */
-    bool networkCheck(void);
+    // /** check network is OK or not
+    //  *  @returns
+    //  *      true on success
+    //  *      false on error
+    //  */
+    // bool networkCheck(void);
 
-    /** build TCP connect
-     *  @param  ip  ip address which will connect to
-     *  @param  port    TCP server' port number
-     *  @returns     
-     *      -1 on error
-     *      0 on success
-     */
-    bool connect(const char* ip, int port, int connectType = TCP, uint8_t dataAccessMode = SOCKET_DIRECT_PUSH_MODE);
+    // /** Write data to socket server
+    //  *  @param  data    data that will be send to socket server
+    //  *  @returns
+    //  *      0 on success
+    //  *      -1 on error
+    //  */
+    // bool write(char *data);
 
-    /** Write data to socket server
-     *  @param  data    data that will be send to socket server
-     *  @returns
-     *      0 on success
-     *      -1 on error
-     */
-    bool write(char *data);
+    // /** Read data from 
+    //  * 
+    //  * 
+    //  * 
+    // */
+    // bool read();
 
-    /** Read data from 
-     * 
-     * 
-     * 
-    */
-    bool read();
+    // /** Get socket status
+    //  *  @returns
+    //  *      -1 on error
+    //  *      0 "Initial" connection has not been established
+    //  *      1 "Openning" client is connecting ro server is trying to listen
+    //  *      2 "Connected" client/incoming connection has been establish
+    //  *      3 "Listening" server is listening 
+    //  *      4 "Closing" connection is closing
+    //  */
+    // int getSocketStatus();
 
-    /** Get socket status
-     *  @returns
-     *      -1 on error
-     *      0 "Initial" connection has not been established
-     *      1 "Openning" client is connecting ro server is trying to listen
-     *      2 "Connected" client/incoming connection has been establish
-     *      3 "Listening" server is listening 
-     *      4 "Closing" connection is closing
-     */
-    int getSocketStatus();
+    // /** Check if socket connected
+    //  *  @returns
+    //  *          true on connected
+    //  *          false on disconnect
+    //  */
+    // bool is_connected(void);
 
-    /** Check if socket connected
-     *  @returns
-     *          true on connected
-     *          false on disconnect
-     */
-    bool is_connected(void);
-
-    /** close TCP connection
-     *  @returns
-     *      0 on success
-     *      -1 on error
-     */
-     bool httpGET(char *url);
+    // /** close TCP connection
+    //  *  @returns
+    //  *      0 on success
+    //  *      -1 on error
+    //  */
+    //  bool httpGET(char *url);
      
-     /** close TCP connection
-     *  @returns
-     *      0 on success
-     *      -1 on error
-     */
-    bool httpPUT(char *url);
+    //  /** close TCP connection
+    //  *  @returns
+    //  *      0 on success
+    //  *      -1 on error
+    //  */
+    // bool httpPUT(char *url);
 
     /**
      * Create socket and return socket id
