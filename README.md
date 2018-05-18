@@ -38,8 +38,6 @@ https://raw.githubusercontent.com/Seeed-Studio/Seeed_Platform/master/package_see
 5. Before uploading the sketch, press and hold both BOOT0 and RST buttons, release the RST button than the BOOT0 button,in this way the board will go into **STM BOOLARDER** mode. <br>
 6. Don't choose any port in tools label just upload the sketch.<br>
 
-## More infomation plaese visit [**Seeed WiKi**](http://wiki.seeed.cc/Wio_LTE_Cat.1/#play-with-arduino) for WioLTE Cat 1.
-
 
 
 
