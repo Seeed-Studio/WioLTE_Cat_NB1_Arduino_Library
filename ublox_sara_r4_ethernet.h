@@ -86,7 +86,7 @@ public:
      *  @return
      *       IP string
      */
-    // char* recoverIP();
+    char* recoverIP();
 
     // /** check network is OK or not
     //  *  @returns
