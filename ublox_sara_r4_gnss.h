@@ -64,7 +64,7 @@ public:
     /** Get coordinate infomation
      *
      */
-    bool getCoordinate(void);
+    // bool getCoordinate(void);
 
     /**
      * Aquire GPS sentence

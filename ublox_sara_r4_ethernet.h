@@ -50,12 +50,6 @@ enum CheckState {
     RET_ERR = false,
 };
 
-enum SocketAccessMode {
-    SOCKET_BUFFER_MODE = 0,
-    SOCKET_DIRECT_PUSH_MODE,
-    SOCKET_TRANSPARANT_MODE
-};
-
 class UBLOX_SARA_R4_Ethernet : public Ublox_sara_r4
 {
 public:
