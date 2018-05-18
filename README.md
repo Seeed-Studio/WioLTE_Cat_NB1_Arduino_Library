@@ -18,7 +18,7 @@ Windows XP [Users download version 1.3.1 drivers](http://www.espruino.com/files/
 Change dfu driver
 ===
 
-**For windows users**: Press and hold BOOT button and connect to computer you will see ***STM32 Device in DFU Mode*** at device manager, this say that you need to use [zadig_xx.exe](./zadig_2.1.2.exe) to change DFU driver from ***STTub30*** to ***WinUSB*** see bellow. <br>
+**For windows users**: Press and hold BOOT button and connect to computer you will see ***STM32 Device in DFU Mode*** at device manager, this say that you need to use [zadig_xx.exe](https://zadig.akeo.ie/) to change DFU driver from ***STTub30*** to ***WinUSB*** see bellow. <br>
 
 ![zadig](img/zadig.png "zadig")
 
