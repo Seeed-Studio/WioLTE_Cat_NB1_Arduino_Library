@@ -67,7 +67,7 @@ The Wio LTE Cat NB1 is combined with **STM32F405RGT6** and external **ublox MAX 
   - [Upload Arduino sketch](#upload-arduino-sketch)
   - [Arduino Example GNSS](#arduino-example-gnss)
   - [Arduino Example SD Card](#arduino-example-sd-card)
-  - [Arduino Example On board RGB LED](#arduino_example-on-board-rgb-led)
+  - [Arduino Example On board RGB LED](#arduino-example-on-board-rgb-led)
   - [Arduino Example Network RSSI](#arduino-example-network-rssi)
   - [Arduino Example TCP](#arduino-example-tcp)
   - [Arduino Example UDP](#arduino-example-udp)
