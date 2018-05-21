@@ -63,7 +63,7 @@ The Wio LTE Cat NB1 is combined with **STM32F405RGT6** and external **ublox MAX 
 
 - [Install USB drive windows OS required](#install-usb-driver)
 - [Using Arduino](#using-arduino)
-  - [Install Seeed STM32F4 Board](install-seeeds-stm32F4-board)
+  - [Install Seeed STM32F4 Board](#install-seeed-stm32f4-board)
   - [Upload Arduino sketch](#upload-arduino-sketch)
   - [Example - GNSS](#arduino-example-gnss)
   - [Example - SD Card](#arduino-example-sd-card)
