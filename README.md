@@ -65,32 +65,32 @@ The Wio LTE Cat NB1 is combined with **STM32F405RGT6** and external **ublox MAX 
 - [Using Arduino](#using-arduino)
   - [Install Seeed STM32F4 Board](#install-seeed-stm32f4-board)
   - [Upload Arduino sketch](#upload-arduino-sketch)
-  - [Example - GNSS](#arduino-example-gnss)
-  - [Example - SD Card](#arduino-example-sd-card)
-  - [Example - On board RGB LED](#arduino_example-on-board-rgb-led)
-  - [Example - Network RSSI](#arduino-example-network-rssi)
-  - [Example - TCP](#arduino-example-tcp)
-  - [Example - UDP](#arduino-example-udp)
-  - [Example - HTTP](#arduino-example-http)
+  - [Arduino Example GNSS](#arduino-example-gnss)
+  - [Arduino Example SD Card](#arduino-example-sd-card)
+  - [Arduino Example On board RGB LED](#arduino_example-on-board-rgb-led)
+  - [Arduino Example Network RSSI](#arduino-example-network-rssi)
+  - [Arduino Example TCP](#arduino-example-tcp)
+  - [Arduino Example UDP](#arduino-example-udp)
+  - [Arduino Example HTTP](#arduino-example-http)
 - [Using Espruino](#using-espruino)
   - [Burning Espruino Firmware](#burning-expruino-firmware) 
   - [Install Espruino web IDE](#install-espruino-web-ide)
   - [How to use Espruino Web IDE](#how-to-use-espruino-web-ide)
-  - [Espruino example - GPS](#espruino-example-gps)
-  - [Espruino example - TCP](#espruino-example-tcp)
-  - [Espruino example - UDP](#espruino-example-udp)
-  - [Espruino example - Html](#espruino-example-html)
-  - [Example - Onboard RGB LED](#espruino-example-onboard-rgb-led)
-  - [Example - SD Card ](#espruino-example-sd-card)
-  - [Example - Onboard RGB LED](#espruino-example-onboard-rgb-led)
-  - [Example - Play with Grove Modules](#espruino-example-play-with-grove-modules)
+  - [Espruino example GPS](#espruino-example-gps)
+  - [Espruino example TCP](#espruino-example-tcp)
+  - [Espruino example UDP](#espruino-example-udp)
+  - [Espruino example Html](#espruino-example-html)
+  - [Espruino Example Onboard RGB LED](#espruino-example-onboard-rgb-led)
+  - [Espruino Example SD Card ](#espruino-example-sd-card)
+  - [Espruino Example Onboard RGB LED](#espruino-example-onboard-rgb-led)
+  - [Espruino Example Play with Grove Modules](#espruino-example-play-with-grove-modules)
     - [Grove Button](#grove-button)
     - [Grove Ralay](#grove-ralay)
     - [Grove Light Sensor](#grove-light-sensor)
     - [Grove GPS](#grove-gps)
-    - [Grove 3-Axis Digital Accerlerometer(±16g)](#grove-3-axis-digital-accerlerometer(±16g))
+    - [Grove 3Axis Digital Accerlerometer(±16g)](#grove-3axis-digital-accerlerometer(±16g))
     - [Grove Servo](#grove-servo)
-    - [Grove Temperature&Humidity_Senseor](#grove-temperature&humidity-senseor)
+    - [Grove Temperature&Humidity Senseor](#grove-temperature&humidity-senseor)
   - [Javascript APIs](#javascript-apis)
 
 
@@ -136,7 +136,7 @@ https://raw.githubusercontent.com/Seeed-Studio/Seeed_Platform/master/package_see
 
 <img src=https://raw.githubusercontent.com/lanselambor/WioLTE_Cat_NB1_Arduino_Library/master/img/Arduino_Upload_Sketch.jpg width=400>
 
-#### Arduino Example - GNSS
+#### Arduino Example GNSS
 
 - Step 1. Plug the Nano SIM card into Nano SIM slot, near PCB board side.
 - Step 2. Select File--> Examples-->WioLTE_Cat_NB1_Arduino_Library-->GNNS-->GNSS sketch.
@@ -203,7 +203,7 @@ $GNGLL,,,,,,V,N*7A
 
 
 
-#### Arduino Example - SD Card
+#### Arduino Example SD Card
 
 - Step 1. Plug micro SD card to the SD card slot.
 - Step 2. Select File--> Examples-->SD-->CardInfo sketch.
@@ -324,7 +324,7 @@ Files found on the card (name, date and size in bytes):
 
 ```
 
-#### Arduino Example - On board RGB LED
+#### Arduino Example On board RGB LED
 
 - Step 1. Select File--> Examples-->WioLTE_Cat_NB1_Arduino_Library-->Seeed_WS2812b sketch.
 - Step 2. Press and hold BOOT button at back side of the Wio LTE and plug the USB to PC.
@@ -358,7 +358,7 @@ void loop() {
 - Step 7. Press **RST**, then you can see the on board RGB LED work.
 
 
-#### Arduino Example - Network RSSI
+#### Arduino Example Network RSSI
 
 ```C
 #include <ublox_sara_r4.h>
@@ -396,13 +396,13 @@ void loop() {
 ```
 
 
-#### Arduino Example - TCP
+#### Arduino Example TCP
 To-DO
 
-#### Arduino Example - UDP
+#### Arduino Example UDP
 To-DO
 
-#### Arduino Example - HTTP
+#### Arduino Example HTTP
 To-DO
 
 ### Using Espruino
@@ -523,19 +523,19 @@ function loadModule(moduleName, callback) {
 }
 ```
 
-##### Espruino example - GPS
+##### Espruino example GPS
 TO-DO
 
-##### Espruino example - TCP
+##### Espruino example TCP
 To-Do
 
-##### Espruino example - UDP
+##### Espruino example UDP
 To-Do
 
-##### Espruino example - Html
+##### Espruino example Html
 To-Do
 
-#### Espruino example - Onboard RGB LED
+#### Espruino example Onboard RGB LED
 
 - Step 1. Config the R, G, B numbers, the arrange is 0~255.
 - Step 2. Copy the code to IDE and upload to board.
@@ -566,7 +566,7 @@ setInterval(function() {
 }, 100);
 ```
 
-#### Espruino example - SD Card 
+#### Espruino example SD Card 
 ***Note: espruino firmware v1.94 is not support SD card drive, please use v1.93 or v1.96(May not released)***
 - Step 1. Plug a micro SD card to the card slot
 - Step 2. Copy the code to Espruino IDE and upload it.
@@ -588,7 +588,7 @@ fs.appendFileSync("hello.txt", "!!!");
 console.log(fs.readFileSync("hello.txt"));
 ```
 
-####  Espruino example - Grove Modules
+####  Espruino example Grove Modules
 
 ##### Grove Button
 - Step 1. Conenct Grove-Button to Wio LTE D38 port.
@@ -646,7 +646,7 @@ var gps = new (require('GPS')).connect(Serial1, function(data) {
 {  "time": "09:35:04", "lat": 30.69765, "lon": 104.05363833333, "fix": 1, "satellites": 6, "altitude": 537.1 }
 ```
 
-##### Grove 3-Axis Digital Accerlerometer(±16g)
+##### Grove 3Axis Digital Accerlerometer(±16g)
 - Step 1. Conenct Grove 3-Axis Digital Accerlerometer(±16g) to Wio LTE I2C port.
 - Step 2. Copy the code to IDE and upload to board.
 ```javascript
@@ -692,7 +692,7 @@ setInterval(function(){
 },20);
 ```
 
-##### Grove Temperature&Humidity_Senseor
+##### Grove Temperature&Humidity Senseor
 
 ```javascript
 WioLTE.setGrovePower(true);
