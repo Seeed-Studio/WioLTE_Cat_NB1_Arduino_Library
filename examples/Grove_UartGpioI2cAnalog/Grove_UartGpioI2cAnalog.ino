@@ -3,10 +3,12 @@
 #include <Wire.h>
 
 /**
- * In this sketch, we use Grove Uart to pass by massage from SeiralUSB,
- * to test this example, you can connect Grove GPS or other Serial device 
- * to the Grove UART port, after uploading this sketch, open Serial Monitor
- * then go on operating.
+ * In this sketch, we test all peripheral on the board.
+ * 1. Grove UART pass through to USB port, you can connect Grove GPS to read message from USB port.
+ * 2. External interrupt using pin D38, D20 follow the state of D38.  
+ * 3. Read ADC0 ~ ADC3
+ * 4. I2C detect using Grove I2C port
+ * 5. AT passthrough between USB port and cellular module. 
  * 
  * Notice: before using Grove UART/GPIO/I2C/Analog sockets, need to enable 
  *         its power at first. using Ublox_sara_r4::enableGrovePower();
