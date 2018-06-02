@@ -14,9 +14,9 @@
 #define ANTENNA_PWR_ON (1)
 #define RGB_LED_ON     (1)
 
-#define SerialGrove  Serial   // UART1
-#define SerialModule Serial1   // UART2
-#define SerialGNSS   Serial2   // UART3
+#define SerialGrove  Seria1   // UART1
+#define SerialModule Serial2   // UART2
+#define SerialGNSS   Serial3   // UART3
 #define SerialDebug  SerialUSB // USB port
 // #if SerialUSB
 // 	#define SerialDebug  SerialUSB // USB port
