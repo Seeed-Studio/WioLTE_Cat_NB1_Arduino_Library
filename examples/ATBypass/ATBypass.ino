@@ -3,8 +3,7 @@
 
 Ublox_sara_r4 ublox = Ublox_sara_r4();
 
-void setup() {
-  
+void setup() {  
   SerialDebug.println("Begin...");
   ublox.powerOn();
   while(false == ublox.Check_If_Power_On()){
