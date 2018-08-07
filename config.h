@@ -3,6 +3,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+// #include <HardwareSerial.h>
+
 #define UART_DEBUG      (1)
 #define WIO_LTE_CAT_NB  (1)
 
@@ -14,9 +16,9 @@
 #define ANTENNA_PWR_ON (1)
 #define RGB_LED_ON     (1)
 
-#define SerialGrove  Seria1   // UART1
-#define SerialModule Serial2   // UART2
-#define SerialGNSS   Serial3   // UART3
+#define SerialGrove  Serial   // UART1
+#define SerialModule Serial1   // UART2
+#define SerialGNSS   Serial2   // UART3
 #define SerialDebug  SerialUSB // USB port
 // #if SerialUSB
 // 	#define SerialDebug  SerialUSB // USB port
