@@ -38,7 +38,7 @@ void peripherial_Init(){
 	*/
     for(int i=0; i<64;  i++){
         pinMode(i, INPUT);
-    }
+    }    
 }
 
 Ublox_sara_r4::Ublox_sara_r4()
@@ -65,6 +65,10 @@ void Ublox_sara_r4::powerOn(void)
   int errCnt = 0;
 
   serialPort_init();
+
+  // Set RTS pin down to enable UART communication
+  pinMode(RTS_PIN, OUTPUT);
+  digitalWrite(RTS_PIN, LOW);
 
   if(Check_If_Power_On()){
     return;
