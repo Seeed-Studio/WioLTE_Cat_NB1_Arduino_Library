@@ -173,5 +173,6 @@ private:
     
 
 };
+extern 
 
 

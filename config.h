@@ -27,7 +27,8 @@
 #define Log_error(x)     SerialDebug.print("[ERROR] "), SerialDebug.println(x)
 #define Log_in(x)       SerialDebug.print("<"), SerialDebug.println(x)
 #define Log_out(x)      SerialDebug.print(">"), SerialDebug.println(x)
-
+#define Log_DumpData(data, dataSize)  for(uint16_t i = 0; i < dataSize; i++) {SerialDebug.print(data[i]);}
+ 
 #if(1==UART_DEBUG)
     #define ERROR(x)            SerialDebug.print("[ERROR] "), SerialDebug.println(x)
     #define DEBUG(x)            SerialDebug.print("[INFO] "), SerialDebug.println(x)

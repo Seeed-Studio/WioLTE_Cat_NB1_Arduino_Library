@@ -239,7 +239,7 @@ bool Ublox_sara_r4::getSignalStrength(int *signal)
     flush_serial();
     send_cmd("AT+CSQ\r");
     clean_buffer(Buffer, 26);
-    read_buffer(Buffer, 26, DEFAULT_TIMEOUT);
+    read_buffer(Buffer, 26);
     if (NULL != (s = strstr(Buffer, "+CSQ:"))) {
         s = strstr((char *)(s), " ");
         s = s + 1;  //We are in the first phone number character 

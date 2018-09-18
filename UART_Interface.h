@@ -51,21 +51,22 @@ enum ATCommandsResult {
     ATError = 0,
 };
 
-void  serialPort_init();
-void  AT_bypass();
+void serialPort_init();
+void AT_bypass();
 int   check_readable();
 int   wait_readable(int wait_time);
-void  flush_serial();
+void flush_serial();
 uint16_t read_string_line(char *buffer, int count, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT);
 uint16_t read_string_until(char *buffer, int count, char *pattern, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT);
-uint16_t  read_buffer(char* buffer,int count,  unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT);
-void  clean_buffer(char* buffer, int count);
-void  send_byte(uint8_t data);
-void  send_char(const char c);
-void  send_cmd(const char* cmd);
-void  send_cmd(const __FlashStringHelper* cmd);
-void  send_cmd_P(const char* cmd);
-void  send_End_Mark(void);
+uint16_t read_buffer(uint8_t *buffer, uint16_t count, uint16_t timeout = DEFAULT_TIMEOUT, uint16_t chartimeout = DEFAULT_INTERCHAR_TIMEOUT);
+uint16_t read_buffer(char *buffer, uint16_t count, uint16_t timeout = DEFAULT_TIMEOUT, uint16_t chartimeout = DEFAULT_INTERCHAR_TIMEOUT);
+void clean_buffer(char* buffer, int count);
+void send_byte(uint8_t data);
+void send_char(const char c);
+void send_cmd(const char* cmd);
+void send_cmd(const __FlashStringHelper* cmd);
+void send_cmd_P(const char* cmd);
+void send_End_Mark(void);
 boolean wait_for_resp(const char* resp, DataType type, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT);
 boolean  check_with_cmd(const char* cmd, const char *resp, DataType type, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT*5);
 boolean  check_with_cmd(const __FlashStringHelper* cmd, const char *resp, DataType type, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT);

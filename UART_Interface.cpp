@@ -131,7 +131,34 @@ uint16_t read_string_until(char *buffer, int count, char *pattern, unsigned int 
     return (uint16_t)(i - 1);
 }
 
-uint16_t read_buffer(char *buffer, int count, unsigned int timeout, unsigned int chartimeout)
+uint16_t read_buffer(uint8_t *buffer, uint16_t count, uint16_t timeout, uint16_t chartimeout)
+{
+    uint16_t i = 0;
+    bool is_timeout = false;
+    unsigned long timerStart, now;
+    timerStart = millis();
+    now = 0;
+    while(1) {
+        if(check_readable()) {
+            char c = SerialModule.read();
+            DEBUG_BYTE(c);
+            now = millis();
+            buffer[i++] = c;
+            if(i >= count)break;
+        }
+        if(i >= count)break;
+        if ((unsigned long) (millis() - timerStart) > timeout * 1000UL) {
+            break;
+        }
+        //If interchar Timeout => return FALSE. So we can return sooner from this function. Not DO it if we dont recieve at least one char (now <> 0)
+        if (((unsigned long) (millis() - now) > chartimeout) && (now != 0)) {
+            break;
+        }
+    }
+    return (uint16_t)(i - 1);
+}
+
+uint16_t read_buffer(char *buffer, uint16_t count, uint16_t timeout, uint16_t chartimeout)
 {
     uint16_t i = 0;
     bool is_timeout = false;
@@ -248,6 +275,12 @@ boolean check_with_cmd(const char* cmd, const char *resp, DataType type, unsigne
     send_cmd(cmd);
     return wait_for_resp(resp,type,timeout,chartimeout);
 }
+
+// boolean check_with_cmd(uint8_t *cmd, uint8_t *resp, DataType type, unsigned int timeout, unsigned int chartimeout)
+// {
+//     send_cmd(cmd);
+//     return wait_for_resp(resp,type,timeout,chartimeout);
+// }
 
 //HACERR que tambien la respuesta pueda ser FLASH STRING
 boolean check_with_cmd(const __FlashStringHelper* cmd, const char *resp, DataType type, unsigned int timeout, unsigned int chartimeout)
