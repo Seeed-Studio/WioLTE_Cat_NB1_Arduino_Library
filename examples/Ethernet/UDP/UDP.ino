@@ -1,44 +1,62 @@
 #include <ublox_sara_r4_ethernet.h>
+#include <config.h>
 
 UBLOX_SARA_R4_Ethernet ublox = UBLOX_SARA_R4_Ethernet();
 
-char *ip = "116.77.208.236";
-char *port = "50001";
+char *ip = "www.lambor.win";
+char *port = "41234";
 
 void setup() {
-	SerialDebug.println("Begin...");
+	Log_info("Begin...");
 	
 	ublox.powerOn();
-	while(false == ublox.Check_If_Power_On()){
-		SerialDebug.println("Waitting for module to alvie...");
+	while(false == ublox.isAlive()){
+		Log_info("Waitting for module to alvie...");
 		delay(1000);
   }  
   SerialDebug.println("Power On O.K!");
 	
-	if(!ublox.network_Init()) { 
-		SerialUSB.println("Network initialize timeout.");
+	if(!ublox.network_Init(30000)) { 
+		Log_error("Network initialize timeout.");
 		return;
 	}
-	SerialDebug.println("Network initialize done.");
+	else{
+		Log_info("Operator: ");
+		Log_info(ublox._operator);
+		Log_info("IP address: ");
+		Log_info(ublox.ip_string);
+	}
+	Log_info("Network initialize done.");
 
 	// if(!ublox.socketClose(0)) {
 	// 	SerialDebug.println("Close socket error!");
 	// 	return;
 	// }
-	if(!ublox.createSocket(UDP, 1200)) {
-		SerialDebug.println("Create socket error!");
+	if(!ublox.createSocket(UDP)) {
+		Log_error("Create socket error!");
 		return;
 	}
 	if(!ublox.udpSendTo(0, ip, port, "Hello!")) {
-		SerialDebug.println("UDP sendto error!");
+		Log_error("UDP sendto error!");
 		return;
 	}
 					
-	SerialDebug.println("Sent UDP message.");
+	Log_info("Sent UDP message.");
 		
 }	
 
 void loop() {
-	AT_bypass();
+	char rtc[32] = {'\0'};
+	ublox.GetRealTimeClock(rtc);
+	Log_info("rtc:");
+	Log_info(rtc);
+	if(ublox.udpSendTo(0, ip, port, rtc)) {
+		Log_info("Sent UDP message successfully.");
+	}
+	else{
+		Log_info("Failed to Sent message.");
+	}
+	delay(2000);
+	// AT_bypass();
 }
 

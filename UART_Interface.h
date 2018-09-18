@@ -29,8 +29,7 @@
  * THE SOFTWARE.
  */
 
-#ifndef __UART_INTERFACE_H__
-#define __UART_INTERFACE_H__
+#pragma once
 
 #include <Arduino.h>
 #include <config.h>
@@ -38,9 +37,18 @@
 #define DEFAULT_TIMEOUT              5   //seconds
 #define DEFAULT_INTERCHAR_TIMEOUT 3000   //miliseconds
 
+#define CTRL_Z '\x1A'
+
+
 enum DataType {
     CMD     = 0,
     DATA    = 1,
+};
+
+// Response type (returned by readResponse() and parser methods).
+enum ATCommandsResult {
+    ATSuccess = 1,
+    ATError = 0,
 };
 
 void  serialPort_init();
@@ -57,10 +65,7 @@ void  send_char(const char c);
 void  send_cmd(const char* cmd);
 void  send_cmd(const __FlashStringHelper* cmd);
 void  send_cmd_P(const char* cmd);
-boolean  Test_AT(void);
 void  send_End_Mark(void);
 boolean wait_for_resp(const char* resp, DataType type, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT);
 boolean  check_with_cmd(const char* cmd, const char *resp, DataType type, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT*5);
 boolean  check_with_cmd(const __FlashStringHelper* cmd, const char *resp, DataType type, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT);
-
-#endif

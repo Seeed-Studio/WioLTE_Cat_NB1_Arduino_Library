@@ -28,9 +28,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-#ifndef __UBLOX_SARA_R4_GNSS_H__
-#define __UBLOX_SARA_R4_GNSS_H__
+#pragma once
 
 #include <stdio.h>
 #include <ublox_sara_r4.h>
@@ -73,4 +71,3 @@ public:
     
 };
 
-#endif

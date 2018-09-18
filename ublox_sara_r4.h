@@ -28,9 +28,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-#ifndef UBLOX_SARA_R4_H
-#define UBLOX_SARA_R4_H
+#pragma once
 
 #include <Arduino.h>
 #include <stdio.h>
@@ -38,8 +36,30 @@
 #include <UART_Interface.h>
 #include <config.h>
 
-class Ublox_sara_r4 {
+#define STR_AT	"AT"
+#define STR_OK	"OK"
 
+#define CR	"\r"
+#define LF	 "\n"
+#define CRLF "\r\n"
+
+// Network registration status.
+enum NetworkRegistrationStatuses {
+    UnknownNetworkRegistrationStatus = 0,
+    Denied,
+    NoNetworkRegistrationStatus,
+    Home,
+    Roaming,
+};
+
+// FTP mode.
+enum FtpModes {
+    ActiveMode = 0,
+    PassiveMode,
+};
+
+class Ublox_sara_r4
+{
 	private:
 
 	public:
@@ -58,26 +78,46 @@ class Ublox_sara_r4 {
 		void disableRGBPower(void);
 		void enableGNSSPower(void);
 		void disableGNSSPower(void);
+		
+		/************************** State Checking and Setting **************************/	
+		/**
+		 * Initialize module with AT commands
+		*/
+		bool initialAtCommands(void);
 
-		/************************** State Checking and Setting **************************/
+		/**
+		 * disable echo mode
+		*/
+		bool disableEchoMode(void);
 
+		/**
+		 * Check SIM card status
+		 * @return
+		 * 	true for SIM ready
+		 * 	false for SIM not ready
+		*/
 		bool checkSIMStatus(void);
-		/** Wait for network register
-		*  @returns
-		*      true on success
-		*      false on error
-		*/
-		bool waitForNetworkRegister(uint8_t seconds);
 
-		/** get Signal Strength from SIM900 (see AT command: AT+CSQ) as integer
-		*  @param
-		*  @returns
-		*      true on success
-		*      false on error
+		/** 
+		 * Wait for network registration
+		 * @returns
+		 *  true on success
+		 *  false on error
 		*/
+		bool waitForNetworkRegistered(uint16_t timeout_sec);
+
+		/** 
+		 * get Signal Strength from SIM900 (see AT command: AT+CSQ) as integer
+		 *  @param
+		 *  @returns
+		 *    true on success
+		 *    false on error
+		 */
 		bool getSignalStrength(int *signal);
-
-		/** Set phone functionarity mode
+		
+		
+		/** 
+		 * Set phone functionarity mode
 		 * @param
 		 *      0, least consumption 1, 4
 		 *      1, standard mode
@@ -106,6 +146,18 @@ class Ublox_sara_r4 {
 		 */
 		bool AT_PowerDown(void);
 
+		/**
+		 * Get real time clock
+		 * @param_in time
+		 * @return 
+		*/
+		void GetRealTimeClock(char *time);
+
+		/**
+		 * Check if module alive
+		*/
+		bool isAlive(void);
+
 		/************************** MCU Pin Definitions **************************/
 
 		const int CTS_PIN            =  0; // PA0
@@ -126,8 +178,6 @@ class Ublox_sara_r4 {
 		const int RESET_MODULE_PIN   = 35; // PC3
 		const int PWR_KEY_PIN        = 36; // PC4
 };
-
-#endif
 
     // {GPIOA, TIMER5, ADC1,  0, 1,    0}, /* D00/PA0  */
     // {GPIOA, TIMER5, ADC1,  1, 2,    1}, /* D01/PA1  */

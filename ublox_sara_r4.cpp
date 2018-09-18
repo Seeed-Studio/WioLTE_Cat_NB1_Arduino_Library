@@ -128,46 +128,104 @@ void Ublox_sara_r4::disableGNSSPower(void)
   digitalWrite(GNSS_PWR_PIN, LOW);
 }
 
+bool Ublox_sara_r4::initialAtCommands(void)
+{
+  // verbose error messages
+  if( ATSuccess != check_with_cmd("AT+CMEE=2", "OK", CMD)) {
+      return false;
+  }
+
+  // enable network identification LED
+  if( ATSuccess != check_with_cmd("AT+UGPIOC=16,2\r\n", "OK", CMD)) {
+      return false;
+  }
+
+  // enable mosule power state identification LED
+  if( ATSuccess != check_with_cmd("AT+UGPIOC=23,10\r\n", "OK", CMD)) {
+      return false;
+  }
+
+  // SIM check
+  if (ATSuccess != checkSIMStatus()) {
+      return false;
+  }
+
+  return true;
+} 
+
+bool Ublox_sara_r4::disableEchoMode(void)
+{
+  if (ATSuccess != check_with_cmd("AT E0\r\n", "OK", CMD)) {
+      return ATError;
+  }
+
+  return ATSuccess;
+}
+
+
 bool Ublox_sara_r4::checkSIMStatus(void)
 {
-    char Buffer[32];
-    int count = 0;
-    clean_buffer(Buffer,32);
-    while(count < 3) {
-        send_cmd("AT+CPIN?\r\n");
-        read_buffer(Buffer,32,DEFAULT_TIMEOUT);
-        if((NULL != strstr(Buffer,"+CPIN: READY"))) {
-            break;
-        }
-        count++;
-        delay(300);
-    }
-    if(count == 3) {
-        return false;
-    }
-    return true;
+    return check_with_cmd("AT+CPIN?\r\n", "+CPIN: READY", CMD);
 }
 
-bool Ublox_sara_r4::waitForNetworkRegister(uint8_t seconds)
+bool Ublox_sara_r4::waitForNetworkRegistered(uint16_t timeout_sec)
 {
-  bool ret;
-  int errCounts = 0;
-
-  // Check Registration Status
-  while(!check_with_cmd("AT+CEREG?\r\n", "+CEREG: 0,1", CMD, 2, 2000) && // Registered, Home network
-        !check_with_cmd("AT+CEREG?\r\n", "+CEREG: 0,5", CMD, 2, 2000))  // Registered, Roaming 
-  {  
-    errCounts++;
-    if(errCounts > seconds)    // Check for N seconds
-    {
-      ret = false;
-      return false;
-    }
-    delay(1000);
-  }
+  bool pass = false;
+  uint32_t timeStart = 0;
   
+  // check network registration
+    timeStart = millis();
+    do {
+        pass = check_with_cmd("AT+CGATT?\r\n","+CGATT: 1", CMD, 2);
+        if((millis() - timeStart) > timeout_sec*1000UL) {
+            return false;
+        }
+    }while(!pass);
+
+    timeStart = millis();
+    do {
+        pass = check_with_cmd("AT+CREG?\r\n","+CREG: 0,1", CMD, 2) | // Registered, Home network
+               check_with_cmd("AT+CREG?\r\n","+CREG: 0,3", CMD, 2);  // Registered, Roaming 
+        if((millis() - timeStart) > timeout_sec*1000UL) {
+            return false;
+        }
+    }while(!pass);
+
   return true;
 }
+
+// bool Ublox_sara_r4::write(char *data)
+// {
+//     /** Socket client write process
+//      * 1.Open
+//      *      AT+QIOPEN=1,0,"TCP","mbed.org",80,0,1
+//      * 2 Set data lenght 
+//      *      AT+QISEND=0,53
+//      * 3.Put in data
+//      *      GET /media/uploads/mbed_official/hello.txt HTTP/1.0\r\n\r\n
+//      * 4.Close socket
+//      *      AT+QICLOSE=0
+//     */
+
+//     char cmd[32];
+//     int len = strlen(data); 
+//     snprintf(cmd,sizeof(cmd),"AT+QISEND=0,%d\r\n",len);
+//     if(!check_with_cmd(cmd,">", CMD, 2*DEFAULT_TIMEOUT)) {
+//         ERROR("ERROR:QISEND\r\n"
+//               "Data length: ");
+//         ERROR(len);
+//         return false;
+//     }
+        
+//     send_cmd(data);
+//     send_cmd("\r\n");
+//     // if(!check_with_cmd("\r\n","SEND OK", DATA, 2*DEFAULT_TIMEOUT)) {
+//     //     ERROR("ERROR:SendData");
+//     //     return false;
+//     // }   
+//     return true;
+// }
+
 bool Ublox_sara_r4::getSignalStrength(int *signal)
 {
   //AT+CSQ                        --> 6 + CR = 10
@@ -211,4 +269,37 @@ bool Ublox_sara_r4::set_CFUN(int mode)
 bool Ublox_sara_r4::AT_PowerDown(void)
 {
   return check_with_cmd("AT+CPWROFF\n\r", "OK", CMD, 1, 2000);
+} 
+
+void Ublox_sara_r4::GetRealTimeClock(char *time)
+{
+  int i = 0;
+  char *p;
+  // Command: AT+CCLK?
+  // +CCLK: "18/09/17,07:37:20"
+  // OK
+  char buffer[64] = {'\0'};
+  send_cmd("AT+CCLK?\r");
+  read_string_until(buffer, sizeof(buffer), "OK", 2);
+
+  if(NULL != (p = strstr(buffer, "+CCLK:")))
+  {
+    i = 8;
+    Log_out(p);
+    while(*(p+i) != '\"' && *(p+i) != '\0')
+    {
+      *(time++) = *(p+i);
+      i++;
+    }
+  }
+  else{
+    ERROR("Read Real Time Clock Failed.");
+    return;
+  }
+}
+
+
+bool Ublox_sara_r4::isAlive(void)
+{
+    return check_with_cmd("AT\r\n", "OK", CMD, 1UL);
 }

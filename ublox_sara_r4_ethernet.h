@@ -27,9 +27,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-#ifndef __UBLOX_SARA_R4_ETHERNET_H__
-#define __UBLOX_SARA_R4_ETHERNET_H__
+#pragma once
 
 #include <Arduino.h>
 #include <stdio.h>
@@ -38,6 +36,18 @@
 #include <config.h>
 #include <ublox_sara_r4.h>
 #include <UART_Interface.h>
+
+#define NONE_IP ((IP_t)0)
+
+#define IP_TO_TUPLE(x) (uint8_t)(((x) >> 24) & 0xFF), \
+                       (uint8_t)(((x) >> 16) & 0xFF), \
+                       (uint8_t)(((x) >> 8) & 0xFF), \
+                       (uint8_t)(((x) >> 0) & 0xFF)
+
+#define TUPLE_TO_IP(a1, a2, a3, a4) ((((uint32_t)a1) << 24) | \
+                                     (((uint32_t)a2) << 16) | \
+                                      (((uint32_t)a3) << 8) | \
+                                      (((uint32_t)a4) << 0))
 
 enum Socket_type {
     CLOSED = 0,
@@ -53,40 +63,36 @@ enum CheckState {
 class UBLOX_SARA_R4_Ethernet : public Ublox_sara_r4
 {
 public:
-    uint32_t _ip;
-    char ip_string[20];
+    uint32_t _u32ip;
+    char ip_string[20] = {'\0'};
+    char _operator[32] = {'\0'};
     bool usedSockId[7] = {false};
-
-    /** Create Ethernet instance
-     *  @param number default phone number during mobile communication
-     */
-    // Ethernet();
+    Ublox_sara_r4 ublox;
 
     /** Check network registration status
      *  @returns
      *      0 on success
      *      -1 on error
      */
-    bool network_Init(void);
+    bool network_Init(uint16 timeout_sec = 20);
 
-    /** Get IP address
+    /** Get current PDP Content
      *  @return
      *      true on successfully
      *      flase on failed
      */
-    bool getIP(void);
+    bool syncPDPContent(void);
 
     /** parse IP string
      *  @return
      *      ip in hex
      */
-    uint32_t str_to_ip(const char* str);
-
-    /** Recover Ip address
-     *  @return
-     *       IP string
+    uint32_t str_to_u32(const char* str);
+    
+    /** Create Ethernet instance
+     *  @param number default phone number during mobile communication
      */
-    char* recoverIP();
+    // Ethernet();    
 
     // /** check network is OK or not
     //  *  @returns
@@ -146,7 +152,7 @@ public:
      * Create socket and return socket id
      * @return socket id
     */
-    int8_t createSocket(Socket_type sock_type, uint16_t port);
+    int8_t createSocket(Socket_type sock_type, uint16_t port = 0);
     bool connect(uint8_t sockid, char *ip, char *port);
     bool socketWrite(uint8_t sockid, char *ip, char *port, char oneByte);
     bool socketWrite(uint8_t sockid, char *ip, char *port, char *content);
@@ -167,8 +173,5 @@ private:
     
 
 };
-
-#endif 
-/* End of file */
 
 

@@ -30,89 +30,88 @@
 
 #include <ublox_sara_r4_ethernet.h>
 
-bool UBLOX_SARA_R4_Ethernet::network_Init(void)
+bool UBLOX_SARA_R4_Ethernet::network_Init(uint16 timeout_sec)
 {
     bool pass = false;
     uint32_t timeStart = 0;
-
     //AT+CPIN? 
     timeStart = millis();
     while(!check_with_cmd("AT+CPIN?\r\n","+CPIN: READY", CMD, 2)){
-        if(millis() - timeStart > 10000){
+        if(millis() - timeStart > timeout_sec*1000UL){
+            ERROR("Check SIM card timeout.");
             return false;
         }
     }
-
     //AT+CREG?
-    // timeStart = millis();
-    // while(!check_with_cmd("AT+CREG?\r\n","+CREG: 0,1", CMD, 2) && 
-    //       !check_with_cmd("AT+CREG?\r\n","+CREG: 0,3", CMD, 2)) 
-    // {
-    //     if((millis() - timeStart) > 15000) {
-    //         return false;
-    //     }
-    // }
-    
-    timeStart = millis();
-    do {
-        pass = check_with_cmd("AT+CREG?\r\n","+CREG: 0,1", CMD, 2) | check_with_cmd("AT+CREG?\r\n","+CREG: 0,3", CMD, 2);
-        if((millis() - timeStart) > 20000) {
-            return false;
-        }
-    }while(!pass);
-
+    waitForNetworkRegistered(timeout_sec);          
+    //Synchronize the current PDP content
+    syncPDPContent();
     return true;
 }
 
-bool UBLOX_SARA_R4_Ethernet::getIP(void)
+bool UBLOX_SARA_R4_Ethernet::syncPDPContent(void)
 {
-    char *p;
+    char *p, *s;
     int i = 0;
-    int errCount = 0;
-    char ipAddr[32];
-    char sendBuffer[32];
-    char recvBuffer[64];
+    int tries = 0;
+    char operate[32] = {'\0'};
+    char recvBuffer[128] = {'\0'};    
+    int a0,a1,a2,a3;
 
-    // Get IP address, AT+QICAT
-    clean_buffer(ipAddr, 32);    
-    clean_buffer(recvBuffer, 64);
-    send_cmd("AT+QIACT?\r\n");
-    read_buffer(recvBuffer, 64);
+    // Get IP address, AT+CGDCONT?
+    // +CGDCONT: 1,"IP","CMNBIOT1","100.112.210.15",0,0,0,0
+    // OK
+    clean_buffer(recvBuffer, sizeof(recvBuffer));
+    send_cmd("AT+CGDCONT?\r\n");
+    read_buffer(recvBuffer, sizeof(recvBuffer));
     DEBUG(recvBuffer);
 
-    errCount = 0;
-    while(NULL == (p = strstr(recvBuffer,"+QIACT:"))) {
-        clean_buffer(recvBuffer, 64);
-        send_cmd("AT+QIACT?\r\n");
-        read_buffer(recvBuffer, 64);
-        if(errCount > 5){
-            return false;
+    if(1 == (sscanf(recvBuffer, "+CGDCONT: 1,\"IP\",\"%s\",\"%d.%d.%d.%d\",0,0,0,0", operate, &a0, &a1, &a2, &a3)))
+    {
+        _u32ip = TUPLE_TO_IP(a0, a1, a2, a3);
+        sprintf(ip_string, "%d.%d.%d.%d", a0, a1, a2, a3);
+        if(strlen(operate) > 0)
+        {
+            memcpy(_operator, operate, strlen(operate));
         }
-        errCount++;
+    }
+    else{
+        return false;
     }
 
-    p = strtok(recvBuffer, ",");  // +QIACT: 1,1,1,"10.72.134.66"
-    p = strtok(NULL, ",");  // 1,1,"10.72.134.66"
-    p = strtok(NULL, ",");  // 1,"10.72.134.66"
-    p = strtok(NULL, ",");  // "10.72.134.66"
-    p += 1;
+    return true;
+    // p = strtok(recvBuffer, ",");  // +CGDCONT: 1,"IP","CMNBIOT1","100.112.210.15",0,0,0,0
+    // p = strtok(NULL, ",");  // "IP","CMNBIOT1","100.112.210.15",0,0,0,0
+    // p = strtok(NULL, ",");  // "CMNBIOT1","100.112.210.15",0,0,0,0
+    // if(p != NULL) s=p;
 
-    clean_buffer(ip_string, 20);
-    while((*(p+i) != '\"') && (*(p+i) != '\0')){
-        ip_string[i] = *(p+i);
-        i++;
-    }
+    // save operator name
+    // s+=1;
+    // clean_buffer(_operator, sizeof _operator);
+    // while((*(s+i) != '\"') && (*(s+i) != '\0')){
+    //     _operator[i] = *(s+i);
+    //     i++;
+    // }
 
-    ip_string[i] = '\0';
-    _ip = str_to_ip(p);
-    if(_ip != 0) {
-        return true;
-    }
+    // // save IP address
+    // p = strtok(NULL, ",");  // "100.112.210.15",0,0,0,0
+    // if(p != NULL) s=p;
+    // s+=1, i=0;
+    // clean_buffer(ip_string, sizeof ip_string);
+    // while((*(s+i) != '\"') && (*(s+i) != '\0')){
+    //     ip_string[i] = *(s+i);
+    //     i++;
+    // }
 
-    return false;
+    // ip_string[i] = '\0';
+    // _u32ip = str_to_u32(ip_string);
+    // if(_u32ip != 0) {
+    //     return true;
+    // }
+
 }
 
-uint32_t UBLOX_SARA_R4_Ethernet::str_to_ip(const char* str)
+uint32_t UBLOX_SARA_R4_Ethernet::str_to_u32(const char* str)
 {
     uint32_t ip = 0;
     char *p = (char*)str;
@@ -129,49 +128,6 @@ uint32_t UBLOX_SARA_R4_Ethernet::str_to_ip(const char* str)
     return ip;
 }
 
-char* UBLOX_SARA_R4_Ethernet::recoverIP()
-{
-    uint8_t a = (_ip>>24)&0xff;
-    uint8_t b = (_ip>>16)&0xff;
-    uint8_t c = (_ip>>8)&0xff;
-    uint8_t d = _ip&0xff;
-
-    snprintf(ip_string, sizeof(ip_string), "%d.%d.%d.%d", a,b,c,d);
-    return ip_string;
-}
-
-// bool UBLOX_SARA_R4_Ethernet::write(char *data)
-// {
-//     /** Socket client write process
-//      * 1.Open
-//      *      AT+QIOPEN=1,0,"TCP","mbed.org",80,0,1
-//      * 2 Set data lenght 
-//      *      AT+QISEND=0,53
-//      * 3.Put in data
-//      *      GET /media/uploads/mbed_official/hello.txt HTTP/1.0\r\n\r\n
-//      * 4.Close socket
-//      *      AT+QICLOSE=0
-//     */
-
-//     char cmd[32];
-//     int len = strlen(data); 
-//     snprintf(cmd,sizeof(cmd),"AT+QISEND=0,%d\r\n",len);
-//     if(!check_with_cmd(cmd,">", CMD, 2*DEFAULT_TIMEOUT)) {
-//         ERROR("ERROR:QISEND\r\n"
-//               "Data length: ");
-//         ERROR(len);
-//         return false;
-//     }
-        
-//     send_cmd(data);
-//     send_cmd("\r\n");
-//     // if(!check_with_cmd("\r\n","SEND OK", DATA, 2*DEFAULT_TIMEOUT)) {
-//     //     ERROR("ERROR:SendData");
-//     //     return false;
-//     // }   
-//     return true;
-// }
-
 int8_t UBLOX_SARA_R4_Ethernet::createSocket(Socket_type sock_type, uint16_t port) {
     /**
      * The ramge of socket id goes from 0 to 6.
@@ -187,8 +143,13 @@ int8_t UBLOX_SARA_R4_Ethernet::createSocket(Socket_type sock_type, uint16_t port
     // Check is there free socket in the range(0~6)
     // for(sockIndex = 0; sockIndex < 7; sockIndex++) any_sock_free &= usedSockId[sockIndex];
     // if(any_sock_free) return sockIndex=-1; 
+    if(port > 0){
+        sprintf(sendBuffer, "AT+USOCR=%d,%lu\r\n", sock_type, port);
+    }
+    else{
+        sprintf(sendBuffer, "AT+USOCR=%d\r\n", sock_type);
+    }
 
-    sprintf(sendBuffer, "AT+USOCR=%d,%lu\r\n", sock_type, port);
     // send_cmd(sendBuffer);
     // read_buffer(recvBuffer, 64);
     // if(!check_with_cmd(sendBuffer, "OK", CMD, 2)) return sockIndex=-1;
@@ -201,7 +162,6 @@ int8_t UBLOX_SARA_R4_Ethernet::createSocket(Socket_type sock_type, uint16_t port
     // }
 
     // return sockIndex;
-
     return check_with_cmd(sendBuffer, "OK", CMD, 2);
     
 }
@@ -251,7 +211,7 @@ bool UBLOX_SARA_R4_Ethernet::udpSendTo(uint8_t sockid, char *ip, char *port, cha
     //     return false;
     // }
 
-    sprintf(sendBuffer, "AT+USOST=%d,\"%s\",%s,%d,%c\r\n", sockid, port, 1, oneByte);    
+    sprintf(sendBuffer, "AT+USOST=%d,\"%s\",%s,%d,\"%c\"\r\n", sockid, ip, port, 1, oneByte);    
     return check_with_cmd(sendBuffer, "OK", CMD, 5, 1000);
 }
 
@@ -264,7 +224,7 @@ bool UBLOX_SARA_R4_Ethernet::udpSendTo(uint8_t sockid, char *ip, char *port, cha
     //     return false;
     // }
 
-    sprintf(sendBuffer, "AT+USOST=%d,\"%s\",%s,%d,%s\r\n", sockid, port, strlen(content), content);    
+    sprintf(sendBuffer, "AT+USOST=%d,\"%s\",%s,%d,\"%s\"\r\n", sockid, ip, port, strlen(content), content);
     return check_with_cmd(sendBuffer, "OK", CMD, 5);
 }
 
