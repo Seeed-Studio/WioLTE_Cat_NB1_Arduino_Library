@@ -33,7 +33,7 @@ PWR_KEY_PIN	KEYWORD1
 #######################################
 
 WS2812	KEYWORD2
-UBLOX_SARA_R4_Ethernet	KEYWORD2
+Ublox_sara_r4	KEYWORD2
 UBLOX_SARA_R4_GNSS	KEYWORD2
 Ublox_sara_r4	KEYWORD2
 

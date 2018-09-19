@@ -1,7 +1,7 @@
-#include <ublox_sara_r4_ethernet.h>
+#include <ublox_sara_r4_network.h>
 #include <config.h>
 
-UBLOX_SARA_R4_Ethernet ublox = UBLOX_SARA_R4_Ethernet();
+UBLOX_SARA_R4_Network ublox = UBLOX_SARA_R4_Network();
 
 char *ip = "www.lambor.win";
 char *port = "41234";
@@ -10,7 +10,7 @@ void setup() {
 	Log_info("Begin...");
 	
 	ublox.powerOn();
-	while(false == ublox.Check_If_Power_On()){
+	while(false == ublox.isAlive()){
 		Log_info("Waitting for module to alvie...");
 		delay(1000);
 	}  
@@ -18,10 +18,10 @@ void setup() {
 
 	if(!ublox.initialAtCommands())
 	{
-		Log_error("Failed to initial AT Commands");
+		Log_error("Failed to initialize module.");
 		return;
 	}
-	Log_info("Initial AT Commands success");
+	Log_info("Initialize module success");
 
 	if(!ublox.network_Init(30000)) { 
 		Log_error("Network initialize timeout.");

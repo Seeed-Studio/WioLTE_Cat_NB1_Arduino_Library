@@ -32,7 +32,7 @@
 #include <UART_Interface.h>
 
 
-void serialPort_init()
+void init_AtTransport()
 {
     SerialModule.begin(115200);
 }
@@ -67,10 +67,18 @@ int wait_readable (int wait_time)
     return dataLen;
 }
 
+void dumpData(uint8_t *data, uint16_t dataSize)
+{
+    for(uint16_t i = 0; i < dataSize; i++) {
+        SerialDebug.print(data[i]);
+    }
+    SerialDebug.println();
+}
+
 void flush_serial()
 {
     while(check_readable()){
-        DEBUG_BYTE(SerialModule.read());
+        debugPrint(SerialModule.read());
     }
 }
 
@@ -141,7 +149,7 @@ uint16_t read_buffer(uint8_t *buffer, uint16_t count, uint16_t timeout, uint16_t
     while(1) {
         if(check_readable()) {
             char c = SerialModule.read();
-            DEBUG_BYTE(c);
+            debugPrint(c);
             now = millis();
             buffer[i++] = c;
             if(i >= count)break;
@@ -168,7 +176,7 @@ uint16_t read_buffer(char *buffer, uint16_t count, uint16_t timeout, uint16_t ch
     while(1) {
         if(check_readable()) {
             char c = SerialModule.read();
-            DEBUG_BYTE(c);
+            debugPrint(c);
             now = millis();
             buffer[i++] = c;
             if(i >= count)break;
@@ -226,12 +234,7 @@ void send_cmd_P(const char* cmd)
     send_byte(pgm_read_byte(cmd++));
 }
 
-void send_End_Mark(void)
-{
-    send_byte(CTRL_Z);
-}
-
-boolean wait_for_resp(const char* resp, DataType type, unsigned int timeout, unsigned int chartimeout)
+bool wait_for_resp(const char* resp, DataType type, unsigned int timeout, unsigned int chartimeout)
 {
     int len = strlen(resp);
     int sum = 0;
@@ -241,7 +244,7 @@ boolean wait_for_resp(const char* resp, DataType type, unsigned int timeout, uns
     while(1) {
         if(check_readable()) {
             char c = SerialModule.read();            
-            DEBUG_BYTE(c);
+            debugPrint(c);
             timerPreChar = millis();
             sum = (c==resp[sum]) ? sum+1 : 0;
             if(sum == len)break;
@@ -263,27 +266,27 @@ boolean wait_for_resp(const char* resp, DataType type, unsigned int timeout, uns
         }
 
     }
-    DEBUG_BYTE('\n');
+    debugPrint('\n');
     //If is a CMD, we will finish to read buffer.
     if(type == CMD) flush_serial();
     return true;
 }
 
 
-boolean check_with_cmd(const char* cmd, const char *resp, DataType type, unsigned int timeout, unsigned int chartimeout)
+bool check_with_cmd(const char* cmd, const char *resp, DataType type, unsigned int timeout, unsigned int chartimeout)
 {
     send_cmd(cmd);
     return wait_for_resp(resp,type,timeout,chartimeout);
 }
 
-// boolean check_with_cmd(uint8_t *cmd, uint8_t *resp, DataType type, unsigned int timeout, unsigned int chartimeout)
+// bool check_with_cmd(uint8_t *cmd, uint8_t *resp, DataType type, unsigned int timeout, unsigned int chartimeout)
 // {
 //     send_cmd(cmd);
 //     return wait_for_resp(resp,type,timeout,chartimeout);
 // }
 
 //HACERR que tambien la respuesta pueda ser FLASH STRING
-boolean check_with_cmd(const __FlashStringHelper* cmd, const char *resp, DataType type, unsigned int timeout, unsigned int chartimeout)
+bool check_with_cmd(const __FlashStringHelper* cmd, const char *resp, DataType type, unsigned int timeout, unsigned int chartimeout)
 {
     send_cmd(cmd);
     return wait_for_resp(resp,type,timeout,chartimeout);

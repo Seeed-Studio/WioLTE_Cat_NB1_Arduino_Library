@@ -39,12 +39,12 @@ void peripherial_init(void)
 bool UBLOX_SARA_R4_GNSS::open_GNSS(void)
 {
   peripherial_init();
-  enableGNSSPower();
+  turnOnGNSSPower();
 }
 
 bool UBLOX_SARA_R4_GNSS::close_GNSS()
 {
-  disableGNSSPower();
+  turnOffGNSSPower();
 }
 
 bool UBLOX_SARA_R4_GNSS::dataFlowMode(void)

@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 
 /*!
  * \brief The maximum length of a packet
@@ -15,30 +16,30 @@ class MQTT
 {
 public:
     MQTT();
-    bool setServerByDomain(uint8_t * server, uint16_t port = 1883);
-		bool setServerByIP(uint8_t * server, uint16_t port = 1883);
-    bool setAuth(uint8_t * userName, uint8_t * passwd);
+    bool setServerByDomain(char * server, uint16_t port = 1883);
+		bool setServerByIP(char * server, uint16_t port = 1883);
+    bool setAuth(char * userName, char * passwd);
 		bool setInactiveTimeout(uint16_t timeout);
-		bool setSecureOpt(uint8_t secure, uint8_t use_profile);
-		bool clearSession(uint8_t clear);
+		bool setSecureOpt(char secure, char use_profile);
+		bool clearSession(char clear);
     
 		// will
-		bool setWillTopic(uint8_t *topic);
-		bool setWillMessage(uint8_t *message);
+		bool setWillTopic(char *topic);
+		bool setWillMessage(char *message);
 
 		// NVM
-		bool set_umqttnv(uint8_t nvMode);
+		bool set_umqttnv(char nvMode);
 	
 		// MQTT ctrl command
 		bool connect(void);
 		bool disconnect(void);	
-    bool publish(uint8_t * topic, uint8_t * msg, uint8_t qos = 0, uint8_t retain = 0);
-    bool publish(uint8_t *topic, uint8_t *message);
-    bool subscribe(uint8_t * topic, uint8_t qos = 0);
-		bool unSubscribe(uint8_t * topic);
-		void readMsg(uint8_t *message);
+    bool publish(const char *topic, const char *msg, char qos = 0, char retain = 0);
+    // bool publish(const  char *topic, const char *msg);
+    bool subscribe(char * topic, char qos = 0);
+		bool unSubscribe(char * topic);
+		void readMsg(char *message);
 
-		bool ping(uint8_t * server);
+		bool ping(char * server);
 		bool loop(void);
 
     // void setTransport(Sodaq_GSM_Modem * transport);
@@ -46,8 +47,8 @@ public:
 
    
     // bool ping();
-    // void setPublishHandler(void (*handler)(uint8_t *topic, const uint8_t *msg, size_t msg_length));
-    // void setPacketHandler(void (*handler)(uint8_t *pckt, size_t len));
+    // void setPublishHandler(void (*handler)(char *topic, const char *msg, size_t msg_length));
+    // void setPacketHandler(void (*handler)(char *pckt, size_t len));
     
     // bool availablePacket();
     // bool open();
@@ -62,19 +63,19 @@ public:
 private:
     // bool connect();
     // bool disconnect();
-    // size_t assemblePublishPacket(uint8_t * pckt, size_t size,
-    //         uint8_t * topic, const uint8_t * msg, size_t msg_len, uint8_t qos = 0, uint8_t retain = 1);
-    // size_t assembleSubscribePacket(uint8_t * pckt, size_t size,
-    //         uint8_t * topic, uint8_t qos = 0);
-    // size_t assembleConnectPacket(uint8_t * pckt, size_t size, uint16_t keepAlive);
-    // //size_t assembleDisconnectPacket(uint8_t * pckt, size_t size);
-    // size_t assemblePingreqPacket(uint8_t * pckt, size_t size);
-    // bool dissectPublishPacket(const uint8_t * pckt, size_t len, MQTTPacketInfo &pckt_info);
+    // size_t assemblePublishPacket(char * pckt, size_t size,
+    //         char * topic, const char * msg, size_t msg_len, char qos = 0, char retain = 1);
+    // size_t assembleSubscribePacket(char * pckt, size_t size,
+    //         char * topic, char qos = 0);
+    // size_t assembleConnectPacket(char * pckt, size_t size, uint16_t keepAlive);
+    // //size_t assembleDisconnectPacket(char * pckt, size_t size);
+    // size_t assemblePingreqPacket(char * pckt, size_t size);
+    // bool dissectPublishPacket(const char * pckt, size_t len, MQTTPacketInfo &pckt_info);
 
     // void newPacketIdentifier();
 
-    // uint32_t getRemainingLength(const uint8_t *buf, size_t & nrBytes);
-    // uint16_t get_uint16_be(const uint8_t *buf);
+    // uint32_t getRemainingLength(const char *buf, size_t & nrBytes);
+    // uint16_t get_uint16_be(const char *buf);
 
   //   enum ControlPacketType_e {
   //       CPT_CONNECT = 1,
@@ -101,20 +102,20 @@ private:
   //   };
     // enum State_e _state;
     // Sodaq_GSM_Modem * _transport;
-    uint8_t * _server;
+    char * _server;
     uint16_t _port;
-    uint8_t * _clientName;
-    uint8_t * _password;
+    char * _clientName;
+    char * _password;
     // char * _clientId;
     // uint16_t _packetIdentifier;
-    // void (*_publishHandler)(uint8_t *topic, const uint8_t *msg, size_t msg_length);
-    // void (*_packetHandler)(uint8_t *pckt, size_t len);
+    // void (*_publishHandler)(char *topic, const char *msg, size_t msg_length);
+    // void (*_packetHandler)(char *pckt, size_t len);
     // uint16_t _keepAlive;
 
     // The (optional) stream to show debug information.
     // Stream* _diagStream;
 
-    // void diagDumpBuffer(const uint8_t * buf, size_t len);
+    // void diagDumpBuffer(const char * buf, size_t len);
 };
 
 /*!

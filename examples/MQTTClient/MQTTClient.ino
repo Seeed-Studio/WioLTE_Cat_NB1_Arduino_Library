@@ -1,11 +1,11 @@
 #include <Arduino.h>
+#include <ublox_sara_r4.h>
 #include <ublox_sara_r4_mqtt.h>
-#include <ublox_sara_r4_ethernet.h>
-#include <config.h>
+#include <UART_Interface.h>
 
-UBLOX_SARA_R4_Ethernet ublox = UBLOX_SARA_R4_Ethernet();
+Ublox_sara_r4 ublox = Ublox_sara_r4();
 
-char *ip = "www.lambor.win";
+char *server = "www.lambor.win";
 char *port = "1883";
 
 void setup() {
@@ -18,18 +18,17 @@ void setup() {
   }  
   SerialDebug.println("Power On O.K!");
 	
-	// if(!ublox.network_Init(30000)) { 
-	// 	Log_error("Network initialize timeout.");
-	// 	return;
-	// }
-	// else{
-	// 	Log_info("Operator: ");
-	// 	Log_info(ublox._operator);
-	// 	Log_info("IP address: ");
-	// 	Log_info(ublox.ip_string);
-	// }
+	if(!ublox.network_Init(30000)) { 
+		Log_error("Network initialize timeout.");
+		return;
+	}
 	Log_info("Network initialize done.");
-		
+
+	mqtt.setServerByDomain(server);	
+	mqtt.setWillTopic("Heat");
+	mqtt.setWillMessage("lambor");
+	mqtt.connect();
+	mqtt.publish("Heat", "23 deg");
 }	
 
 void loop() {

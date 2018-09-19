@@ -11,7 +11,7 @@
  * 5. AT passthrough between USB port and cellular module. 
  * 
  * Notice: before using Grove UART/GPIO/I2C/Analog sockets, need to enable 
- *         its power at first. using Ublox_sara_r4::enableGrovePower();
+ *         its power at first. using Ublox_sara_r4::turnOnGrovePower();
  *         Power supply on D38 is always on.
 */
 
@@ -20,7 +20,7 @@ Ublox_sara_r4 ublox = Ublox_sara_r4();
 void setup() {
   SerialGrove.begin(9600);
   SerialDebug.println("Begin...");  
-  ublox.enableGrovePower();
+  ublox.turnOnGrovePower();
 
 
   //Attach interrupt to Gpio D38, set D20 output follow D38

@@ -1,8 +1,6 @@
-#include <stdio.h>
 #include <Arduino.h>
 #include <ublox_sara_r4_mqtt.h>
 #include <UART_Interface.h>
-#include <config.h>
 
 class MQTTPacketInfo
 {
@@ -13,7 +11,7 @@ public:
     uint16_t _topic_size;
     uint16_t _topic_length;
 
-    uint8_t *_msg;
+    char *_msg;
     uint16_t _msg_size;
     uint16_t _msg_length;
     uint16_t _msg_truncated_length;
@@ -25,7 +23,7 @@ public:
     uint16_t _msg_id;
 };
 
-bool MQTT::setServerByDomain(uint8_t * server, uint16_t port)
+bool MQTT::setServerByDomain(char * server, uint16_t port)
 {
 	bool retVal = false;
 	char sendBuf[64] = {'\0'};
@@ -38,7 +36,7 @@ bool MQTT::setServerByDomain(uint8_t * server, uint16_t port)
 	return retVal;				
 }
 
-bool MQTT::setServerByIP(uint8_t * server, uint16_t port)
+bool MQTT::setServerByIP(char * server, uint16_t port)
 {
 	bool retVal = false;
 	char sendBuf[64] = {'\0'};
@@ -48,7 +46,7 @@ bool MQTT::setServerByIP(uint8_t * server, uint16_t port)
 	return retVal;				
 }
 
-bool MQTT::setAuth(uint8_t *userName, uint8_t *passwd)
+bool MQTT::setAuth(char *userName, char *passwd)
 {
 	// AT+UMQTT=4,<username>, <password>
 	bool retVal = false;
@@ -84,7 +82,7 @@ bool MQTT::clearSession(uint8_t clear)
 	return retVal;
 }
 
-bool MQTT::setWillTopic(uint8_t *topic)
+bool MQTT::setWillTopic(char *topic)
 {
 	bool retVal = false;
 	char sendBuf[64] = {'\0'};
@@ -94,7 +92,7 @@ bool MQTT::setWillTopic(uint8_t *topic)
 	return retVal;
 }
 
-bool MQTT::setWillMessage(uint8_t *message)
+bool MQTT::setWillMessage(char *message)
 {
 	bool retVal = false;
 	char sendBuf[64] = {'\0'};
@@ -124,26 +122,26 @@ bool MQTT::connect(void)
 	return retVal;
 }
 
-bool MQTT::publish(uint8_t *topic, uint8_t *message)
+// bool MQTT::publish(const char *topic, const char *msg)
+// {
+// 	bool retVal = false;
+// 	char txBuf[64] = {'\0'};
+
+// 	sprintf(txBuf, "AT+UMQTTC=2,0,0,\"%s\",\"%s\"", topic, msg);
+// 	retVal = check_with_cmd(txBuf, "+UMQTTC: 2,1", CMD);
+// 	return retVal;
+// }
+
+bool MQTT::publish(const char *topic, const char *msg, uint8_t qos, uint8_t retain)
 {
 	bool retVal = false;
-	char sendBuf[64] = {'\0'};
-
-	sprintf(sendBuf, "AT+UMQTTC=2,0,0,\"%s\",\"%s\"", topic, message);
-	retVal = check_with_cmd(sendBuf, "+UMQTTC: 2,1", CMD);
+	char txBuf[64] = {'\0'};
+	sprintf(txBuf, "AT+UMQTTC=2,%d,%d,\"%s\",\"%s\"", qos, retain, topic, msg);
+	retVal = check_with_cmd(txBuf, "+UMQTTC: 2,1", CMD);
 	return retVal;
 }
 
-bool MQTT::publish(uint8_t * topic, uint8_t * msg, uint8_t qos, uint8_t retain)
-{
-	bool retVal = false;
-	char sendBuf[64] = {'\0'};
-	sprintf(sendBuf, "AT+UMQTTC=2,%d,%d,\"%s\",\"%s\"", qos, retain, topic, msg);
-	retVal = check_with_cmd(sendBuf, "+UMQTTC: 2,1", CMD);
-	return retVal;
-}
-
-bool MQTT::subscribe(uint8_t *topic, uint8_t qos)
+bool MQTT::subscribe(char *topic, uint8_t qos)
 {
 	bool retVal = false;
 	char sendBuf[64] = {'\0'};
@@ -152,7 +150,7 @@ bool MQTT::subscribe(uint8_t *topic, uint8_t qos)
 	return retVal;
 }
 
-bool MQTT::unSubscribe(uint8_t *topic)
+bool MQTT::unSubscribe(char *topic)
 {
 	bool retVal = false;
 	char sendBuf[64] = {'\0'};
@@ -179,9 +177,9 @@ bool MQTT::loop()
 	pckt_size = check_readable();
 	if (pckt_size > 0) 
 	{
-		uint8_t mqtt_packets[256] = {'\0'};
+		char mqtt_packets[256] = {'\0'};
 		// char topic[128] = {'\0'};;
-		// uint8_t msg[128] = {'\0'};
+		// char msg[128] = {'\0'};
 		MQTTPacketInfo pckt_info;
 
 		pckt_size = read_buffer(mqtt_packets, sizeof(mqtt_packets));
@@ -190,7 +188,7 @@ bool MQTT::loop()
 				// TODO
 
 				Log_info("received packet:");
-				Log_DumpData(mqtt_packets, pckt_size);
+				dumpData(mqtt_packets, pckt_size);
 
 // 				// Notice that there can be multiple MQTT packet
 // 				pckt_ix = 0;

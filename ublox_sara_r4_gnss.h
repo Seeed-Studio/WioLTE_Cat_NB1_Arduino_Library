@@ -33,7 +33,6 @@
 #include <stdio.h>
 #include <ublox_sara_r4.h>
 #include <UART_Interface.h>
-#include <config.h>
 
 class UBLOX_SARA_R4_GNSS : public Ublox_sara_r4
 {

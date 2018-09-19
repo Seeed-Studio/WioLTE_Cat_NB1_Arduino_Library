@@ -31,98 +31,79 @@
 
 
 #include <ublox_sara_r4.h>
+#include <stdio.h>
 
-void peripherial_Init(){
+void peripherial_Init() 
+{
 	/**
 	 * Setting all GPIO to input mode, that avoid power wasting from GPIO
 	*/
-    for(int i=0; i<64;  i++){
-        pinMode(i, INPUT);
-    }    
+  for(int i=0; i<64;  i++) {
+      pinMode(i, INPUT);
+  }      
 }
 
 Ublox_sara_r4::Ublox_sara_r4()
-{
-    peripherial_Init();
-    
-#if(1 == RGB_LED_ON)
-    pinMode(RGB_LED_PWR_PIN, OUTPUT);
-    digitalWrite(RGB_LED_PWR_PIN, HIGH);  // RGB LED Power
-#endif   
-}   
-
-bool Ublox_sara_r4::Check_If_Power_On(void)
-{
-    if(check_with_cmd(F("AT\r\n"), "OK", CMD, 2, 2000)){
-        return true;
-    }
-    return false;
+{  
+  peripherial_Init();  
 }
 
 void Ublox_sara_r4::powerOn(void)
-{
-  int pwr_status = 1;
-  int errCnt = 0;
-
-  serialPort_init();
+{   
+  init_AtTransport(); 
 
   // Set RTS pin down to enable UART communication
   pinMode(RTS_PIN, OUTPUT);
   digitalWrite(RTS_PIN, LOW);
 
-  if(Check_If_Power_On()){
-    return;
-  }    
-
-#if(1 == MODULE_PWR_ON)
+  // Module Power Default HIGH
   pinMode(MODULE_PWR_PIN, OUTPUT);
-  digitalWrite(MODULE_PWR_PIN, HIGH);     // Module Power Default HIGH
-#endif 
-
-#if(1 == GROVE_PWR_ON)
-  pinMode(GROVE_PWR_PIN, OUTPUT);
-  digitalWrite(GROVE_PWR_PIN, HIGH);    // VCC_B Enable pin
-#endif
+  digitalWrite(MODULE_PWR_PIN, HIGH); 
 
   pinMode(PWR_KEY_PIN, OUTPUT);
   digitalWrite(PWR_KEY_PIN, LOW);
+
+  if(isAlive()) {
+    return;
+  }      
+  
   digitalWrite(PWR_KEY_PIN, HIGH);
   delay(800);
   digitalWrite(PWR_KEY_PIN, LOW);
 }
 
-void Ublox_sara_r4::enableGrovePower(void)
+void Ublox_sara_r4::turnOnGrovePower(void)
 {
   pinMode(GROVE_PWR_PIN, OUTPUT);
   digitalWrite(GROVE_PWR_PIN, HIGH);
 }
 
-void Ublox_sara_r4::disableGrovePower(void)
+void Ublox_sara_r4::turnOffGrovePower(void)
 {
   pinMode(GROVE_PWR_PIN, OUTPUT);
   digitalWrite(GROVE_PWR_PIN, LOW);
 }
 
 
-void Ublox_sara_r4::enableRGBPower(void)
+void Ublox_sara_r4::turnOnRGBPower(void)
 {
   pinMode(RGB_LED_PWR_PIN, OUTPUT);
   digitalWrite(RGB_LED_PWR_PIN, HIGH);
 }
 
-void Ublox_sara_r4::disableRGBPower(void)
+void Ublox_sara_r4::turnOffRGBPower(void)
 {
   pinMode(RGB_LED_PWR_PIN, OUTPUT);
   digitalWrite(RGB_LED_PWR_PIN, LOW);
 }
 
-void Ublox_sara_r4::enableGNSSPower(void)
+void Ublox_sara_r4::turnOnGNSSPower(void)
 {
   pinMode(GNSS_PWR_PIN, OUTPUT);
   digitalWrite(GNSS_PWR_PIN, HIGH);
 }
 
-void Ublox_sara_r4::disableGNSSPower(void)
+void Ublox_sara_r4::turnOffGNSSPower(void)
 {
   pinMode(GNSS_PWR_PIN, OUTPUT);
   digitalWrite(GNSS_PWR_PIN, LOW);
@@ -130,23 +111,29 @@ void Ublox_sara_r4::disableGNSSPower(void)
 
 bool Ublox_sara_r4::initialAtCommands(void)
 {
+
+  // turn echo off
+   if(RET_OK != disableEchoMode()) {
+     return false;
+   }
+
   // verbose error messages
-  if( ATSuccess != check_with_cmd("AT+CMEE=2", "OK", CMD)) {
+  if( RET_OK != check_with_cmd("AT+CMEE=2\r\n", "OK", CMD)) {
       return false;
   }
 
   // enable network identification LED
-  if( ATSuccess != check_with_cmd("AT+UGPIOC=16,2\r\n", "OK", CMD)) {
+  if( RET_OK != check_with_cmd("AT+UGPIOC=16,2\r\n", "OK", CMD)) {
       return false;
   }
 
   // enable mosule power state identification LED
-  if( ATSuccess != check_with_cmd("AT+UGPIOC=23,10\r\n", "OK", CMD)) {
+  if( RET_OK != check_with_cmd("AT+UGPIOC=23,10\r\n", "OK", CMD)) {
       return false;
   }
 
   // SIM check
-  if (ATSuccess != checkSIMStatus()) {
+  if (RET_OK != checkSIMStatus()) {
       return false;
   }
 
@@ -155,11 +142,11 @@ bool Ublox_sara_r4::initialAtCommands(void)
 
 bool Ublox_sara_r4::disableEchoMode(void)
 {
-  if (ATSuccess != check_with_cmd("AT E0\r\n", "OK", CMD)) {
-      return ATError;
+  if (RET_OK != check_with_cmd("AT E0\r\n", "OK", CMD)) {
+      return RET_ERR;
   }
 
-  return ATSuccess;
+  return RET_OK;
 }
 
 
@@ -177,8 +164,9 @@ bool Ublox_sara_r4::waitForNetworkRegistered(uint16_t timeout_sec)
     timeStart = millis();
     do {
         pass = check_with_cmd("AT+CGATT?\r\n","+CGATT: 1", CMD, 2);
-        if((millis() - timeStart) > timeout_sec*1000UL) {
-            return false;
+        if(IS_TIMEOUT(timeStart, timeout_sec * 1000UL)) {
+          Log_error("do +CGATT timeout.");
+          return false;
         }
     }while(!pass);
 
@@ -186,8 +174,9 @@ bool Ublox_sara_r4::waitForNetworkRegistered(uint16_t timeout_sec)
     do {
         pass = check_with_cmd("AT+CREG?\r\n","+CREG: 0,1", CMD, 2) | // Registered, Home network
                check_with_cmd("AT+CREG?\r\n","+CREG: 0,3", CMD, 2);  // Registered, Roaming 
-        if((millis() - timeStart) > timeout_sec*1000UL) {
-            return false;
+        if(IS_TIMEOUT(timeStart, timeout_sec*1000UL)) {
+          Log_error("do +CREG timeout.");
+          return false;
         }
     }while(!pass);
 
@@ -259,8 +248,7 @@ bool Ublox_sara_r4::getSignalStrength(int *signal)
 
 bool Ublox_sara_r4::set_CFUN(int mode)
 {
-  char txbuf[20];
-  clean_buffer(txbuf, 20);
+  char txbuf[20] = {'\0'};
   sprintf(txbuf, "AT+CFUN=%d", mode);
   send_cmd(txbuf);
   return check_with_cmd("\n\r", "OK", CMD, 2, 2000);
@@ -285,7 +273,7 @@ void Ublox_sara_r4::GetRealTimeClock(char *time)
   if(NULL != (p = strstr(buffer, "+CCLK:")))
   {
     i = 8;
-    Log_out(p);
+    debugPrintln(p);
     while(*(p+i) != '\"' && *(p+i) != '\0')
     {
       *(time++) = *(p+i);
@@ -293,7 +281,7 @@ void Ublox_sara_r4::GetRealTimeClock(char *time)
     }
   }
   else{
-    ERROR("Read Real Time Clock Failed.");
+    Log_error("Read Real Time Clock Failed.");
     return;
   }
 }
@@ -301,5 +289,333 @@ void Ublox_sara_r4::GetRealTimeClock(char *time)
 
 bool Ublox_sara_r4::isAlive(void)
 {
-    return check_with_cmd("AT\r\n", "OK", CMD, 1UL);
+  bool retVal = check_with_cmd("AT\r\n", "OK", CMD, 1UL);
+  return  retVal;
+}
+
+bool Ublox_sara_r4::network_Init(uint16 timeout_sec)
+{
+    bool pass = false;
+    uint32_t timeStart = 0;
+    
+    initialAtCommands();
+
+    //AT+CPIN? 
+    timeStart = millis();
+    do {
+      pass = checkSIMStatus();    
+      if(IS_TIMEOUT(timeStart, timeout_sec * 1000UL)) {
+        Log_error("check SIM card timeout.");
+        return false;
+      }
+    } while(!pass);
+
+    //AT+CREG?
+    if(!waitForNetworkRegistered(timeout_sec)) return false;
+    
+    //Synchronize the current PDP content
+    if(!read_ugdcont()) return false;
+
+    // if(!getIPAddr()) return RET_ERR;
+    if(!getOperator()) return false;
+
+    return true;
+}
+
+bool Ublox_sara_r4::read_ugdcont(void)
+{
+  char *p;
+  char recvBuffer[128] = {'\0'};    
+  int a0,a1,a2,a3;
+
+  // Get IP address, AT+CGDCONT?
+  // +CGDCONT: 1,"IP","CMNBIOT1","100.112.210.15",0,0,0,0
+  // OK
+  clean_buffer(recvBuffer, sizeof(recvBuffer));
+  send_cmd("AT+CGDCONT?\r\n");
+  read_string_line(recvBuffer, sizeof(recvBuffer));
+  debugPrintln(recvBuffer);
+  Log_prolog_out(recvBuffer);
+  
+  if(NULL != (p = strstr(recvBuffer, "+CGDCONT:")))
+  {
+    if(5 == (sscanf(p, "+CGDCONT: %*d,\"IP\",\"%[^\"]\",\"%d.%d.%d.%d\",%*d,%*d,%*d,%*d", _apn, &a0, &a1, &a2, &a3)))
+    {
+      _u32ip = TUPLE_TO_IP(a0, a1, a2, a3);
+      sprintf(ip_string, IP_FORMAT, a0, a1, a2, a3);
+    }
+  }    
+  else{
+      return false;
+  }
+
+  return true;
+    // p = strtok(recvBuffer, ",");  // +CGDCONT: 1,"IP","CMNBIOT1","100.112.210.15",0,0,0,0
+    // p = strtok(NULL, ",");  // "IP","CMNBIOT1","100.112.210.15",0,0,0,0
+    // p = strtok(NULL, ",");  // "CMNBIOT1","100.112.210.15",0,0,0,0
+    // if(p != NULL) s=p;
+
+    // save operator name
+    // s+=1;
+    // clean_buffer(_operator, sizeof _operator);
+    // while((*(s+i) != '\"') && (*(s+i) != '\0')){
+    //     _operator[i] = *(s+i);
+    //     i++;
+    // }
+
+    // // save IP address
+    // p = strtok(NULL, ",");  // "100.112.210.15",0,0,0,0
+    // if(p != NULL) s=p;
+    // s+=1, i=0;
+    // clean_buffer(ip_string, sizeof ip_string);
+    // while((*(s+i) != '\"') && (*(s+i) != '\0')){
+    //     ip_string[i] = *(s+i);
+    //     i++;
+    // }
+
+    // ip_string[i] = '\0';
+    // _u32ip = str_to_u32(ip_string);
+    // if(_u32ip != 0) {
+    //     return true;
+    // }
+
+}
+
+bool setAPN(char *APN, char *user, char *passwd)
+{
+  //AT+CGDCONT=
+   
+}
+
+bool Ublox_sara_r4::getIPAddr()
+{
+  // AT+CGPADDR=1 
+  // +CGPADDR: 1,100.88.38.200
+  char *p;
+  char rxBuf[64] = {'\0'};
+  uint8_t a0, a1, a2, a3;
+
+  send_cmd("AT+CGPADDR=1\r\n");
+  read_buffer(rxBuf, sizeof rxBuf);
+  debugPrint(">>");
+  debugPrintln(rxBuf);
+
+  if(NULL != (p = strstr(rxBuf, "+CGPADDR:")))
+  {
+    if(4 == sscanf(p, "+CGPADDR: %*d,%d.%d.%d.%d", &a0, &a1, &a2, &a3))
+    {      
+      _u32ip = TUPLE_TO_IP(a0, a1, a2, a3);
+      sprintf(ip_string, IP_FORMAT, a0, a1, a2, a3);
+    }
+  }
+  else
+  {
+    Log_error("+CGPADDR failed");
+    return RET_ERR;
+  }
+
+  return RET_OK;
+}
+
+bool Ublox_sara_r4::getOperator()
+{
+  // AT+COPS?
+  // +COPS: 0,0,"460 00 CMCC",9
+  char *p, *s;
+  char rxBuf[64] = {'\0'};
+
+  send_cmd("AT+COPS?\r\n");
+  read_buffer(rxBuf, sizeof rxBuf);
+
+  if(NULL != (p = strstr(rxBuf, "+COPS:")))
+  {
+    // strtok(p, ",");
+    // strtok(NULL, ",");
+    // s = strtok(NULL, ",");
+    // clean_buffer(_operator, sizeof _operator);    
+    // memcpy(_operator, &s[1], strlen(s)-2);
+
+    if(1 == sscanf(p, "+COPS: %*d,%*d,\"%[^\"]\",%*d", _operator))
+    {
+      Log_info("_operator: ");
+      Log_info(_operator);
+    }
+  }
+  else
+  {
+    Log_error("+COPS failed");
+    return RET_ERR;
+  }
+
+  return RET_OK;
+}
+
+
+uint32_t Ublox_sara_r4::str_to_u32(const char* str)
+{
+    uint32_t ip = 0;
+    char *p = (char*)str;
+    
+    for(int i = 0; i < 4; i++) {
+        ip |= atoi(p);
+        p = strchr(p, '.');
+        if (p == NULL) {
+            break;
+        }
+        if(i < 3) ip <<= 8;
+        p++;
+    }
+    return ip;
+}
+
+int Ublox_sara_r4::createSocket(Socket_type sock_type, uint16_t port) {
+    /**
+     * The ramge of socket id goes from 0 to 6.
+    */
+    uint8_t unusedId;
+    bool no_free_socket;
+    char txBuf[64];
+    char rxBuf[32];
+    char *p;
+    int newSockid = -1;
+
+    clean_buffer(txBuf, 64);
+    // clean_buffer(rxBuf, 64);
+
+    // Check is there free socket in the range(0~6)
+    for(unusedId = 0; unusedId < 7; unusedId++) 
+    {
+      if(!usedSockId[unusedId]) break;
+    }
+    if(unusedId > 6) return -1; 
+
+    if(port > 0){
+        sprintf(txBuf, "AT+USOCR=%d,%lu\r\n", sock_type, port);
+    }
+    else{
+        sprintf(txBuf, "AT+USOCR=%d\r\n", sock_type);
+    }
+
+    send_cmd(txBuf);
+    read_buffer(rxBuf, 64);  //+USOCR: 6
+    if(NULL != (p = strstr(rxBuf, "+USOCR:")))
+    {
+      if(1 == sscanf(p, "+USOCR: %d", &newSockid))
+      {
+        usedSockId[newSockid] = true;
+      }
+    }
+    
+    // return sockIndex;
+    return newSockid;    
+}
+
+bool Ublox_sara_r4::sockConnect(uint8_t sockid, char *ip, char *port)
+{
+    char sendBuffer[64];
+    
+    if(!usedSockId[sockid]) {
+        Log_error("Sockect id not exist.");
+        return false;
+    }
+    sprintf(sendBuffer, "AT+USOCO=%d,\"%s\",%s\r\n", sockid, ip, port);    
+    return check_with_cmd(sendBuffer, "OK", CMD, 5);
+}
+
+bool Ublox_sara_r4::sockClose(int sockid)
+{
+  //AT+USOCL=0
+  bool retVal;
+  char txBuf[64];
+    
+  sprintf(txBuf, "AT+USOCL=%d\r\n", sockid);    
+  retVal = check_with_cmd(txBuf, "OK", CMD, 5);
+  if(retVal == RET_OK)
+  {
+    usedSockId[sockid] = false;
+  }
+  
+  return retVal;
+}
+
+int Ublox_sara_r4::getSocketError(void)
+{
+  // AT+USOER
+  int err_code;
+  char *p;
+
+  char rxBuf[16] = {'\0'};
+
+  send_cmd("AT+USOER\r\n");
+  read_buffer(rxBuf, sizeof(rxBuf));
+
+  if(NULL != (p = strstr(rxBuf, "+USOER")))
+  {
+    if(sscanf(p, "+USOER: %d", &err_code) != 1)
+    {
+      err_code = -1;
+    }
+  }
+
+  return err_code;
+}
+
+bool Ublox_sara_r4::socketWrite(uint8_t sockid, char *ip, char *port, char oneByte)
+{
+    char sendBuffer[64];
+    
+    if(!usedSockId[sockid]) {
+        debugPrintln("Sockect id not exist.");
+        return false;
+    }
+    sprintf(sendBuffer, "AT+USOWR=%d,%d,%c\r\n", sockid, 1, oneByte);    
+    return check_with_cmd(sendBuffer, "OK", CMD, 5);
+}
+
+bool Ublox_sara_r4::socketWrite(uint8_t sockid, char *ip, char *port, char *content)
+{
+    char sendBuffer[64];
+
+    if(!usedSockId[sockid]) {
+        debugPrintln("Sockect id not exist.");
+        return false;
+    }
+
+    sprintf(sendBuffer, "AT+USOWR=%d,%d,%c\r\n", sockid, strlen(content), content);    
+    return check_with_cmd(sendBuffer, "OK", CMD, 5);
+}
+
+bool Ublox_sara_r4::udpSendTo(uint8_t sockid, char *ip, char *port, char oneByte)
+{
+    char sendBuffer[64];
+
+    // if(!usedSockId[sockid]) {
+    //     debugPrintln("Sockect id not exist.");
+    //     return false;
+    // }
+
+    sprintf(sendBuffer, "AT+USOST=%d,\"%s\",%s,%d,\"%c\"\r\n", sockid, ip, port, 1, oneByte);    
+    return check_with_cmd(sendBuffer, "OK", CMD, 5, 1000);
+}
+
+bool Ublox_sara_r4::udpSendTo(uint8_t sockid, char *ip, char *port, char *content) 
+{
+    char sendBuffer[64];
+
+    // if(!usedSockId[sockid]) {
+    //     debugPrintln("Sockect id not exist.");
+    //     return false;
+    // }
+
+    sprintf(sendBuffer, "AT+USOST=%d,\"%s\",%s,%d,\"%s\"\r\n", sockid, ip, port, strlen(content), content);
+    return check_with_cmd(sendBuffer, "OK", CMD, 5);
+}
+
+bool Ublox_sara_r4::socketClose(uint8_t sockid)
+{
+    char sendBuffer[16];
+
+    if(!usedSockId[sockid]) return false;
+    sprintf(sendBuffer, "AT+USOCL=%d\r\n", sockid);    
+    return check_with_cmd(sendBuffer, "OK", CMD);
 }
