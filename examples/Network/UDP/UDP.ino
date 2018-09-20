@@ -22,24 +22,28 @@ void setup() {
 	}
 	else{
 		Log_info("APN: ");
-		Log_info(ublox._apn);
+		Log(ublox._apn);
 		Log_info("IP Address: ");
-		Log_info(ublox.ip_string);
+		Log(ublox.ip_string);
 		Log_info("Operator: ");
-		Log_info(ublox._operator);
+		Log(ublox._operator);
 	}
 	Log_info("Network initialize done.");
 
-	if(!ublox.createSocket(UDP)) {
+	if(-1 == (sockId = ublox.createSocket(UDP))) {
 		Log_error("Create socket error!");
 		return;
 	}
+	Log_info("Create socket as id: ");
+	Log(sockId);
 	if(!ublox.udpSendTo(0, ip, port, "Hello!")) {
 		Log_error("UDP sendto error!");
 		return;
 	}
 					
 	Log_info("Sent UDP message.");
+
+
 		
 }	
 
@@ -55,6 +59,6 @@ void loop() {
 	// 	Log_info("Failed to Sent message.");
 	// }
 	delay(2000);
-	// AT_bypass();
+	AT_bypass();
 }
 

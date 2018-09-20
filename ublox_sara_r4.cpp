@@ -113,9 +113,9 @@ bool Ublox_sara_r4::initialAtCommands(void)
 {
 
   // turn echo off
-   if(RET_OK != disableEchoMode()) {
-     return false;
-   }
+  //  if(RET_OK != disableEchoMode()) {
+  //    return false;
+  //  }
 
   // verbose error messages
   if( RET_OK != check_with_cmd("AT+CMEE=2\r\n", "OK", CMD)) {
@@ -163,22 +163,15 @@ bool Ublox_sara_r4::waitForNetworkRegistered(uint16_t timeout_sec)
   // check network registration
     timeStart = millis();
     do {
-        pass = check_with_cmd("AT+CGATT?\r\n","+CGATT: 1", CMD, 2);
+        pass = check_with_cmd("AT+CGATT?\r\n","+CGATT: 1", CMD) && 
+               ( check_with_cmd("AT+CREG?\r\n","+CREG: 0,1", CMD) ||
+                 check_with_cmd("AT+CREG?\r\n","+CREG: 0,5", CMD));
         if(IS_TIMEOUT(timeStart, timeout_sec * 1000UL)) {
           Log_error("do +CGATT timeout.");
           return false;
         }
-    }while(!pass);
-
-    timeStart = millis();
-    do {
-        pass = check_with_cmd("AT+CREG?\r\n","+CREG: 0,1", CMD, 2) | // Registered, Home network
-               check_with_cmd("AT+CREG?\r\n","+CREG: 0,3", CMD, 2);  // Registered, Roaming 
-        if(IS_TIMEOUT(timeStart, timeout_sec*1000UL)) {
-          Log_error("do +CREG timeout.");
-          return false;
-        }
-    }while(!pass);
+        Log(".");
+    }while(!pass);    
 
   return true;
 }
@@ -273,7 +266,6 @@ void Ublox_sara_r4::GetRealTimeClock(char *time)
   if(NULL != (p = strstr(buffer, "+CCLK:")))
   {
     i = 8;
-    debugPrintln(p);
     while(*(p+i) != '\"' && *(p+i) != '\0')
     {
       *(time++) = *(p+i);
@@ -334,14 +326,13 @@ bool Ublox_sara_r4::read_ugdcont(void)
   clean_buffer(recvBuffer, sizeof(recvBuffer));
   send_cmd("AT+CGDCONT?\r\n");
   read_string_line(recvBuffer, sizeof(recvBuffer));
-  debugPrintln(recvBuffer);
-  Log_prolog_out(recvBuffer);
+  debugPrintOut(recvBuffer);
   
   if(NULL != (p = strstr(recvBuffer, "+CGDCONT:")))
   {
     if(5 == (sscanf(p, "+CGDCONT: %*d,\"IP\",\"%[^\"]\",\"%d.%d.%d.%d\",%*d,%*d,%*d,%*d", _apn, &a0, &a1, &a2, &a3)))
     {
-      _u32ip = TUPLE_TO_IP(a0, a1, a2, a3);
+      _u32ip = TUPLE_TO_U32IP(a0, a1, a2, a3);
       sprintf(ip_string, IP_FORMAT, a0, a1, a2, a3);
     }
   }    
@@ -350,39 +341,12 @@ bool Ublox_sara_r4::read_ugdcont(void)
   }
 
   return true;
-    // p = strtok(recvBuffer, ",");  // +CGDCONT: 1,"IP","CMNBIOT1","100.112.210.15",0,0,0,0
-    // p = strtok(NULL, ",");  // "IP","CMNBIOT1","100.112.210.15",0,0,0,0
-    // p = strtok(NULL, ",");  // "CMNBIOT1","100.112.210.15",0,0,0,0
-    // if(p != NULL) s=p;
-
-    // save operator name
-    // s+=1;
-    // clean_buffer(_operator, sizeof _operator);
-    // while((*(s+i) != '\"') && (*(s+i) != '\0')){
-    //     _operator[i] = *(s+i);
-    //     i++;
-    // }
-
-    // // save IP address
-    // p = strtok(NULL, ",");  // "100.112.210.15",0,0,0,0
-    // if(p != NULL) s=p;
-    // s+=1, i=0;
-    // clean_buffer(ip_string, sizeof ip_string);
-    // while((*(s+i) != '\"') && (*(s+i) != '\0')){
-    //     ip_string[i] = *(s+i);
-    //     i++;
-    // }
-
-    // ip_string[i] = '\0';
-    // _u32ip = str_to_u32(ip_string);
-    // if(_u32ip != 0) {
-    //     return true;
-    // }
-
 }
+
 
 bool setAPN(char *APN, char *user, char *passwd)
 {
+  // TO-DO has not found AT commands for setting APN
   //AT+CGDCONT=
    
 }
@@ -396,15 +360,13 @@ bool Ublox_sara_r4::getIPAddr()
   uint8_t a0, a1, a2, a3;
 
   send_cmd("AT+CGPADDR=1\r\n");
-  read_buffer(rxBuf, sizeof rxBuf);
-  debugPrint(">>");
-  debugPrintln(rxBuf);
+  read_buffer(rxBuf, sizeof rxBuf);  
 
   if(NULL != (p = strstr(rxBuf, "+CGPADDR:")))
   {
     if(4 == sscanf(p, "+CGPADDR: %*d,%d.%d.%d.%d", &a0, &a1, &a2, &a3))
     {      
-      _u32ip = TUPLE_TO_IP(a0, a1, a2, a3);
+      _u32ip = TUPLE_TO_U32IP(a0, a1, a2, a3);
       sprintf(ip_string, IP_FORMAT, a0, a1, a2, a3);
     }
   }
@@ -425,20 +387,14 @@ bool Ublox_sara_r4::getOperator()
   char rxBuf[64] = {'\0'};
 
   send_cmd("AT+COPS?\r\n");
-  read_buffer(rxBuf, sizeof rxBuf);
+  read_buffer(rxBuf, sizeof rxBuf);  
 
   if(NULL != (p = strstr(rxBuf, "+COPS:")))
   {
-    // strtok(p, ",");
-    // strtok(NULL, ",");
-    // s = strtok(NULL, ",");
-    // clean_buffer(_operator, sizeof _operator);    
-    // memcpy(_operator, &s[1], strlen(s)-2);
-
     if(1 == sscanf(p, "+COPS: %*d,%*d,\"%[^\"]\",%*d", _operator))
     {
-      Log_info("_operator: ");
-      Log_info(_operator);
+      // debugPrint("Operator: ");
+      // debugPrintln(_operator);
     }
   }
   else
@@ -479,8 +435,7 @@ int Ublox_sara_r4::createSocket(Socket_type sock_type, uint16_t port) {
     char *p;
     int newSockid = -1;
 
-    clean_buffer(txBuf, 64);
-    // clean_buffer(rxBuf, 64);
+    clean_buffer(txBuf, sizeof txBuf);
 
     // Check is there free socket in the range(0~6)
     for(unusedId = 0; unusedId < 7; unusedId++) 

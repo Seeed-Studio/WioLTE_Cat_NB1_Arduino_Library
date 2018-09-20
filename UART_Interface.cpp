@@ -52,18 +52,15 @@ int check_readable()
     return SerialModule.available();
 }
 
-int wait_readable (int wait_time)
+int wait_readable (int wait_time_sec)
 {
-    unsigned long timerStart;
+    unsigned long timerStart = NOW;
     int dataLen = 0;
     timerStart = millis();
-    while((unsigned long) (millis() - timerStart) > wait_time * 1000UL) {
-        delay(500);
-        dataLen = check_readable();
-        if(dataLen > 0){
-            break;
-        }
-    }
+    do {
+       dataLen = check_readable();
+    } while(dataLen == 0 && !IS_TIMEOUT(timerStart, wait_time_sec * 1000u));
+
     return dataLen;
 }
 
@@ -223,18 +220,18 @@ void send_cmd(const __FlashStringHelper* cmd)
 {
   int i = 0;
   const char *ptr = (const char *) cmd;
-  while (pgm_read_byte(ptr + i) != 0x00) {
+  while (pgm_read_byte(ptr + i) != '\0') {
     send_byte(pgm_read_byte(ptr + i++));
   }
 }
 
 void send_cmd_P(const char* cmd)
 {
-  while (pgm_read_byte(cmd) != 0x00)
+  while (pgm_read_byte(cmd) != '\0')
     send_byte(pgm_read_byte(cmd++));
 }
 
-bool wait_for_resp(const char* resp, DataType type, unsigned int timeout, unsigned int chartimeout)
+bool wait_for_resp(const char* resp, DataType type, unsigned int timeout_sec, unsigned int chartimeout_ms)
 {
     int len = strlen(resp);
     int sum = 0;
@@ -249,24 +246,22 @@ bool wait_for_resp(const char* resp, DataType type, unsigned int timeout, unsign
             sum = (c==resp[sum]) ? sum+1 : 0;
             if(sum == len)break;
         }
-		if ((unsigned long) (millis() - timerStart) > timeout * 1000UL) {
+		// if ((unsigned long) (millis() - timerStart) > timeout_sec * 1000UL) {
+        //     return false;
+        // }
+        if (IS_TIMEOUT(timerStart, timeout_sec * 1000u)) {
             return false;
         }
-		/*
-        if (IS_TIMEOUT(timerStart, timeout * 1000UL)) {
+        //If interchar Timeout => return FALSE. So we can return sooner from this function.  chartimeout_ms
+        if (IS_TIMEOUT(timerPreChar, chartimeout_ms) && (timerPreChar != 0)) {
             return false;
         }
-		*/
-        //If interchar Timeout => return FALSE. So we can return sooner from this function.  chartimeout
-        /*if (IS_TIMEOUT(timerPreChar, chartimeout) && (timerPreChar != 0)) {
-            return false;
-        }*/
-		if (((unsigned long) (millis() - timerPreChar) > chartimeout) && (timerPreChar != 0)) {
-            return false;
-        }
+		// if (((unsigned long) (millis() - timerPreChar) > chartimeout_ms) && (timerPreChar != 0)) {
+        //     return false;
+        // }
 
     }
-    debugPrint('\n');
+    debugPrintln("");
     //If is a CMD, we will finish to read buffer.
     if(type == CMD) flush_serial();
     return true;

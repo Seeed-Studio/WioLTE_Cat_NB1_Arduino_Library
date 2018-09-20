@@ -41,8 +41,8 @@ public:
     double latitude;
     char str_longitude[16];
     char str_latitude[16];
-    double ref_longitude = 22.584322;
-    double ref_latitude = 113.966678;
+    double ref_longitude = 0.000000;
+    double ref_latitude = 0.000000;
     char North_or_South[2];
     char West_or_East[2];
 

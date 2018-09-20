@@ -10,45 +10,45 @@
 #define MQTT_MAX_PACKET_LENGTH  100
 #define MQTT_DEFAULT_KEEP_ALIVE  60
 
+
 class MQTTPacketInfo;
 
 class MQTT
 {
 public:
-    MQTT();
-    bool setServerByDomain(char * server, uint16_t port = 1883);
-		bool setServerByIP(char * server, uint16_t port = 1883);
+    MQTT(){};
+    ~MQTT(){};
+    bool setServer(char * server, uint16_t port = 1883);
     bool setAuth(char * userName, char * passwd);
 		bool setInactiveTimeout(uint16_t timeout);
-		bool setSecureOpt(char secure, char use_profile);
-		bool clearSession(char clear);
+		bool setSecureOpt(uint8_t secure, uint8_t use_profile);
+		bool clearSession(uint8_t clear);
     
 		// will
 		bool setWillTopic(char *topic);
 		bool setWillMessage(char *message);
 
 		// NVM
-		bool set_umqttnv(char nvMode);
+		bool set_umqttnv(uint8_t nvMode);
 	
 		// MQTT ctrl command
-		bool connect(void);
+    bool connect(uint16_t timeout_sec = 5);
 		bool disconnect(void);	
-    bool publish(const char *topic, const char *msg, char qos = 0, char retain = 0);
+    bool publish(const char *topic, const char *msg, uint8_t qos = 0, uint8_t retain = 0);
     // bool publish(const  char *topic, const char *msg);
-    bool subscribe(char * topic, char qos = 0);
+    bool subscribe(char * topic, uint8_t qos = 0);
 		bool unSubscribe(char * topic);
 		void readMsg(char *message);
-
-		bool ping(char * server);
-		bool loop(void);
+    bool ping(char * server);
+    void setPublishHandler(void (*handler)(char *topic, const char *msg, size_t msg_length));
+    void setPacketHandler(void (*handler)(char *pckt, size_t len));
+    bool loop(void);
 
     // void setTransport(Sodaq_GSM_Modem * transport);
     // void setKeepAlive(uint16_t x) { _keepAlive = x; }
 
    
-    // bool ping();
-    // void setPublishHandler(void (*handler)(char *topic, const char *msg, size_t msg_length));
-    // void setPacketHandler(void (*handler)(char *pckt, size_t len));
+    
     
     // bool availablePacket();
     // bool open();
@@ -61,6 +61,7 @@ public:
     // void setDiag(Stream *stream) { _diagStream = stream; }
 
 private:
+    bool isIPAddress(char *server);
     // bool connect();
     // bool disconnect();
     // size_t assemblePublishPacket(char * pckt, size_t size,
@@ -121,5 +122,5 @@ private:
 /*!
  * \brief This is the default (the only?) instance of the MQTT class
  */
-extern MQTT mqtt;
+// extern MQTT mqtt;
 

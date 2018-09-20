@@ -35,23 +35,21 @@
 
 #define STR_AT	"AT"
 #define STR_OK	"OK"
-#define CTRL_Z '\x1A'
+#define STR_ERR	"ERROR"
 
+#define CTRL_Z '\x1A'
 #define CR	"\r"
 #define LF	 "\n"
 #define CRLF "\r\n"
 
 #define IP_FORMAT "%d.%d.%d.%d"
 
-#define NOW millis()
-#define IS_TIMEOUT(begin, timeout_ms) ((NOW - begin) > timeout_ms)
-
-#define IP_TO_TUPLE(x) (uint8_t)(((x) >> 24) & 0xFF), \
+#define U32IP_TO_TUPLE(x) (uint8_t)(((x) >> 24) & 0xFF), \
                        (uint8_t)(((x) >> 16) & 0xFF), \
                        (uint8_t)(((x) >> 8) & 0xFF), \
                        (uint8_t)(((x) >> 0) & 0xFF)
 
-#define TUPLE_TO_IP(a1, a2, a3, a4) ((((uint32_t)a1) << 24) | \
+#define TUPLE_TO_U32IP(a1, a2, a3, a4) ((((uint32_t)a1) << 24) | \
                                      (((uint32_t)a2) << 16) | \
                                       (((uint32_t)a3) << 8) | \
                                       (((uint32_t)a4) << 0))
@@ -194,7 +192,7 @@ class Ublox_sara_r4
 		 *      0 on success
 		 *      -1 on error
 		 */
-		bool network_Init(uint16 timeout_sec = 20);
+		bool network_Init(uint16 timeout_sec = 60);
 
 		/**
 		 * +UGDCONT
