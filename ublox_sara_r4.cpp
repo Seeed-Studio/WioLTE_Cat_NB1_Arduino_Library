@@ -167,10 +167,8 @@ bool Ublox_sara_r4::waitForNetworkRegistered(uint16_t timeout_sec)
                ( check_with_cmd("AT+CREG?\r\n","+CREG: 0,1", CMD) ||
                  check_with_cmd("AT+CREG?\r\n","+CREG: 0,5", CMD));
         if(IS_TIMEOUT(timeStart, timeout_sec * 1000UL)) {
-          Log_error("do +CGATT timeout.");
           return false;
         }
-        Log(".");
     }while(!pass);    
 
   return true;
@@ -306,7 +304,7 @@ bool Ublox_sara_r4::network_Init(uint16 timeout_sec)
     if(!waitForNetworkRegistered(timeout_sec)) return false;
     
     //Synchronize the current PDP content
-    if(!read_ugdcont()) return false;
+    if(!parse_ugdcont()) return false;
 
     // if(!getIPAddr()) return RET_ERR;
     if(!getOperator()) return false;
@@ -314,7 +312,7 @@ bool Ublox_sara_r4::network_Init(uint16 timeout_sec)
     return true;
 }
 
-bool Ublox_sara_r4::read_ugdcont(void)
+bool Ublox_sara_r4::parse_ugdcont(void)
 {
   char *p;
   char recvBuffer[128] = {'\0'};    
@@ -465,31 +463,48 @@ int Ublox_sara_r4::createSocket(Socket_type sock_type, uint16_t port) {
     return newSockid;    
 }
 
-bool Ublox_sara_r4::sockConnect(uint8_t sockid, char *ip, char *port)
+bool Ublox_sara_r4::sockConnect(uint8_t sockid, char *ip, uint16_t port)
 {
-    char sendBuffer[64];
+    char txBuf[64];
     
     if(!usedSockId[sockid]) {
         Log_error("Sockect id not exist.");
         return false;
     }
-    sprintf(sendBuffer, "AT+USOCO=%d,\"%s\",%s\r\n", sockid, ip, port);    
-    return check_with_cmd(sendBuffer, "OK", CMD, 5);
+
+    // Connect to server
+    sprintf(txBuf, "AT+USOCO=%d,\"%s\",%d\r\n", sockid, ip, port);
+    if(!check_with_cmd(txBuf, "OK", CMD, 5)) {
+      return false;
+    }
+
+    // Enter direct link mode
+    sprintf(txBuf, "AT+USODL=%d\r\n", sockid);
+    if(!check_with_cmd(txBuf, "CONNECT", CMD, 5)) {
+      return false;
+    }
+
+    return true;
 }
 
 bool Ublox_sara_r4::sockClose(int sockid)
 {
   //AT+USOCL=0
-  bool retVal;
+  bool retVal = false;
   char txBuf[64];
-    
-  sprintf(txBuf, "AT+USOCL=%d\r\n", sockid);    
-  retVal = check_with_cmd(txBuf, "OK", CMD, 5);
-  if(retVal == RET_OK)
-  {
-    usedSockId[sockid] = false;
+        
+  if(check_with_cmd("+++", "DISCONNECT", CMD, 5u)) {
+    sprintf(txBuf, "AT+USOCL=%d\r\n", sockid);    
+    retVal = check_with_cmd(txBuf, "OK", CMD, 5);
+    if(retVal == RET_OK)
+    {
+      usedSockId[sockid] = false;
+    }
+  } 
+  else {
+    Log_error("Can't close socket.");
   }
-  
+
   return retVal;
 }
 
@@ -540,6 +555,17 @@ bool Ublox_sara_r4::socketWrite(uint8_t sockid, char *ip, char *port, char *cont
     return check_with_cmd(sendBuffer, "OK", CMD, 5);
 }
 
+void Ublox_sara_r4::socketWrite(uint8_t *data)
+{
+  send_cmd(data);
+}
+
+
+void Ublox_sara_r4::socketWrite(uint8_t data)
+{
+  send_byte(data);
+}
+
 bool Ublox_sara_r4::udpSendTo(uint8_t sockid, char *ip, char *port, char oneByte)
 {
     char sendBuffer[64];
@@ -564,13 +590,4 @@ bool Ublox_sara_r4::udpSendTo(uint8_t sockid, char *ip, char *port, char *conten
 
     sprintf(sendBuffer, "AT+USOST=%d,\"%s\",%s,%d,\"%s\"\r\n", sockid, ip, port, strlen(content), content);
     return check_with_cmd(sendBuffer, "OK", CMD, 5);
-}
-
-bool Ublox_sara_r4::socketClose(uint8_t sockid)
-{
-    char sendBuffer[16];
-
-    if(!usedSockId[sockid]) return false;
-    sprintf(sendBuffer, "AT+USOCL=%d\r\n", sockid);    
-    return check_with_cmd(sendBuffer, "OK", CMD);
 }

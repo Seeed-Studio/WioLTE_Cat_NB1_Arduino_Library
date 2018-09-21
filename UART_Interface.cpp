@@ -235,9 +235,8 @@ bool wait_for_resp(const char* resp, DataType type, unsigned int timeout_sec, un
 {
     int len = strlen(resp);
     int sum = 0;
-    unsigned long timerStart, timerPreChar;    //timerPreChar is the time when the previous Char has been read.
-    timerStart = millis();
-	timerPreChar = 0;
+    uint32_t timerStart = millis(), timerPreChar = 0;    //timerPreChar is the time when the previous Char has been read.
+
     while(1) {
         if(check_readable()) {
             char c = SerialModule.read();            
@@ -246,19 +245,43 @@ bool wait_for_resp(const char* resp, DataType type, unsigned int timeout_sec, un
             sum = (c==resp[sum]) ? sum+1 : 0;
             if(sum == len)break;
         }
-		// if ((unsigned long) (millis() - timerStart) > timeout_sec * 1000UL) {
-        //     return false;
-        // }
         if (IS_TIMEOUT(timerStart, timeout_sec * 1000u)) {
             return false;
         }
         //If interchar Timeout => return FALSE. So we can return sooner from this function.  chartimeout_ms
         if (IS_TIMEOUT(timerPreChar, chartimeout_ms) && (timerPreChar != 0)) {
             return false;
+        }        
+    }
+    debugPrintln("");
+    //If is a CMD, we will finish to read buffer.
+    if(type == CMD) flush_serial();
+    return true;
+}
+
+bool wait_for_resp_dot(const char* resp, DataType type, unsigned int timeout_sec)
+{
+    int len = strlen(resp);
+    int sum = 0;
+    uint32_t timerStart = millis();
+    uint32_t dotShowInterval = 100, lastTimeDotShow = millis();
+
+    while(true) {
+        if(check_readable()) {
+            char c = SerialModule.read();            
+            debugPrint(c);
+            sum = (c==resp[sum]) ? sum+1 : 0;
+            if(sum == len)break;
         }
-		// if (((unsigned long) (millis() - timerPreChar) > chartimeout_ms) && (timerPreChar != 0)) {
-        //     return false;
-        // }
+        if (IS_TIMEOUT(timerStart, timeout_sec * 1000u)) {
+            return false;
+        }
+
+        if((millis() - lastTimeDotShow) > dotShowInterval) {
+            lastTimeDotShow = millis();
+            Log(".");            
+        }
+        
 
     }
     debugPrintln("");

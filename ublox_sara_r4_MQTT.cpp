@@ -26,7 +26,7 @@ bool MQTT::setServer(char * server, uint16_t port)
 
 	if(isIPAddress(server)) 
 	{
-		sprintf(txBuf, "AT+UMQTT=3,\"%s\",%d\r\n"CRLF, server, port);
+		sprintf(txBuf, "AT+UMQTT=3,\"%s\",%d"CRLF, server, port);
 		retVal = check_with_cmd(txBuf, "+UMQTT: 3,1", CMD);
 	}
 	else 
@@ -35,6 +35,18 @@ bool MQTT::setServer(char * server, uint16_t port)
 		retVal = check_with_cmd(txBuf, "+UMQTT: 2,1", CMD);
 	}				
 	return retVal;				
+}
+
+bool setClientId(char *clientId)
+{
+	//AT+UMQTT=0,<client_id>
+	bool retVal = false;
+	char txBuf[64] = {'\0'};
+
+	sprintf(txBuf, "AT+UMQTT=0,\"%s\""CRLF, clientId);
+	retVal = check_with_cmd(txBuf, "+UMQTT: 0,1", CMD);	
+	return retVal;
+
 }
 
 bool MQTT::setAuth(char *userName, char *passwd)
@@ -73,44 +85,93 @@ bool MQTT::clearSession(uint8_t clear)
 	return retVal;
 }
 
-bool MQTT::setWillTopic(char *topic)
+bool MQTT::setWill(char *topic, char *msg, uint8_t qos = 0, uint8_t retain = 0)
 {
 	bool retVal = false;
 	char txBuf[64] = {'\0'};
 
-	sprintf(txBuf, "AT+UMQTTWTOPIC=0,0,%s"CRLF, topic);
+	sprintf(txBuf, "AT+UMQTTWTOPIC=%d,%d,%s"CRLF, qos, retain, topic);
 	retVal = check_with_cmd(txBuf, "+UMQTTWTOPIC: 1", CMD);
+
+	sprintf(txBuf, "AT+UMQTTWMSG=\"%s\""CRLF, msg);
+	retVal &= check_with_cmd(txBuf, "+UMQTTWMSG: 1", CMD);
+
 	return retVal;
 }
 
-bool MQTT::setWillMessage(char *message)
+bool MQTT::clearWill(void)
 {
 	bool retVal = false;
 	char txBuf[64] = {'\0'};
 
-	sprintf(txBuf, "AT+UMQTTWMSG=\"%s\""CRLF, message);
-	retVal = check_with_cmd(txBuf, "+UMQTTWMSG: 1", CMD);
+	sprintf(txBuf, "AT+UMQTTWTOPIC=%d,%d,%s"CRLF, 0, 0, "");
+	retVal = check_with_cmd(txBuf, "+UMQTTWTOPIC: 1", CMD);
+
+	sprintf(txBuf, "AT+UMQTTWMSG=\"%s\""CRLF, msg);
+	retVal &= check_with_cmd(txBuf, "+UMQTTWMSG: 1", CMD);
+
 	return retVal;
 }
 
+// bool MQTT::setWillTopic(char *topic)
+// {
+// 	bool retVal = false;
+// 	char txBuf[64] = {'\0'};
 
-bool MQTT::set_umqttnv(uint8_t nvMode)
+// 	sprintf(txBuf, "AT+UMQTTWTOPIC=0,0,%s"CRLF, topic);
+// 	retVal = check_with_cmd(txBuf, "+UMQTTWTOPIC: 1", CMD);
+	
+// 	return retVal;
+// }
+
+// bool MQTT::setWillMessage(char *message)
+// {
+// 	bool retVal = false;
+// 	char txBuf[64] = {'\0'};
+
+// 	sprintf(txBuf, "AT+UMQTTWMSG=\"%s\""CRLF, message);
+// 	retVal = check_with_cmd(txBuf, "+UMQTTWMSG: 1", CMD);
+// 	return retVal;
+// }
+
+
+bool MQTT::saveProfile()
 {
-
+	//AT+UMQTTNV=2
+	bool retVal = false;
+	retVal = check_with_cmd("AT+UMQTTNV=2"CRLF, "+UMQTTNV: 2,1", CMD);
+	return retVal;
+}
+bool restoreProfile()
+{
+	//AT+UMQTTNV=1
+	bool retVal = false;
+	retVal = check_with_cmd("AT+UMQTTNV=1"CRLF, "+UMQTTNV: 1,1", CMD);
+	return retVal;
 }
 
-bool  MQTT::disconnect(void)
+bool deleteProfile()
+{
+	//AT+UMQTTNV=0
+	bool retVal = false;
+	retVal = check_with_cmd("AT+UMQTTNV=0"CRLF, "+UMQTTNV: 0,1", CMD);
+	return retVal;
+}
+
+bool MQTT::disconnect(void)
 {
 	bool retVal = false;
-	retVal = check_with_cmd("AT+UMQTTC=0"CRLF, "+UMQTTC: 0,1", CMD);
+	retVal = check_with_cmd("AT+UMQTTC=0"CRLF, "+UMQTTC: 0", CMD);
 	return retVal;
 }
 
 bool MQTT::connect(uint16_t timeout_sec)
 {
 	bool retVal = false;
-	uint8_t _retry = retry;
-	retVal = check_with_cmd("AT+UMQTTC=1"CRLF, "+UMQTTC: 1,1", CMD, timeout_sec);
+
+	send_cmd("AT+UMQTTC=1"CRLF);	
+	retVal = wait_for_resp_dot("+UMQTTC: 1,1", CMD, timeout_sec);
+
 	return retVal;
 }
 
@@ -152,6 +213,15 @@ bool MQTT::ping(char * server)
 	return retVal;
 }
 
+void MQTT::setPublishHandler(void (*handler)(char *topic, const char *msg, size_t msg_length))
+    _publishHandler = handler;
+}
+
+void setPacketHandler(void (*handler)(char *pckt, size_t len))
+{
+    _packetHandler = handler;
+}
+
 bool MQTT::loop(void)
 {
 	// Is there a packet?
@@ -190,7 +260,6 @@ bool MQTT::loop(void)
 						memcpy(pckt_info._msg, msg, strlen(msg));						
 					}
 				}
-
 			}
 		}
 		if (pckt_size > 0) 

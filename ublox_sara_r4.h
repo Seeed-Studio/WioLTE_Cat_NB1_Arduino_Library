@@ -38,10 +38,6 @@
 #define STR_ERR	"ERROR"
 
 #define CTRL_Z '\x1A'
-#define CR	"\r"
-#define LF	 "\n"
-#define CRLF "\r\n"
-
 #define IP_FORMAT "%d.%d.%d.%d"
 
 #define U32IP_TO_TUPLE(x) (uint8_t)(((x) >> 24) & 0xFF), \
@@ -198,17 +194,17 @@ class Ublox_sara_r4
 		 * +UGDCONT
 		 * 
 		*/
-		bool read_ugdcont(void);
+		bool parse_ugdcont(void);
 
 		/**
 		 * Set APN 
 		 */
-		bool setAPN(char *APN, char *user, char *passwd);
+		// bool setAPN(char *APN, char *user, char *passwd);
 
 		/**
 		 * Connect to APN
 		 */
-		bool connectAPN();
+		// bool connectAPN();
 
 		/**
 		 * Get IP address
@@ -291,12 +287,16 @@ class Ublox_sara_r4
 		 * @return socket id
 		*/
 		int createSocket(Socket_type sock_type, uint16_t port = 0);
-		bool sockConnect(uint8_t sockid, char *ip, char *port);
+		bool sockConnect(uint8_t sockid, char *ip, uint16_t port);
 		bool sockClose(int sockid);
 		int getSocketError(void);
 		bool socketWrite(uint8_t sockid, char *ip, char *port, char oneByte);
 		bool socketWrite(uint8_t sockid, char *ip, char *port, char *content);
+		void socketWrite(uint8_t *data);
+		void socketWrite(uint8_t data);
 		bool udpSendTo(uint8_t sockid, char *ip, char *port, char oneByte);
+		// void enterDirectLink();
+		// void exitDirectLink();
 		/**
 		 * Send udp message.
 		 * @sockid - socket id created before.
@@ -307,7 +307,6 @@ class Ublox_sara_r4
 		 * @return - return true for success, false for failure.
 		*/
 		bool udpSendTo(uint8_t sockid, char *ip, char *port, char *content);
-		bool socketClose(uint8_t sockid);
 
 		/************************** MCU Pin Definitions **************************/
 

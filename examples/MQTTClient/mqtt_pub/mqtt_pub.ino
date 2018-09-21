@@ -6,8 +6,13 @@
 #include <ublox_sara_r4_mqtt.h>
 #include <UART_Interface.h>
 
+#define PRE_FIX  "[MQTT] "
+
 MQTT mqtt;
 Ublox_sara_r4 ublox = Ublox_sara_r4();
+
+char *server = "mqtt server";
+uint16_t port = 1883;
 
 void setup() {
 	Log_info("Begin...");
@@ -16,22 +21,22 @@ void setup() {
 	Log("Waitting for module to alive...");
 	while(false == ublox.isAlive()){
 		Log(".");
-		delay(200);
+		delay(100);
 	}  
-	Log_info("Power On success!");
-	
+	Logln();
+
+	Log_info("Initializing network...");	
 	if(!ublox.network_Init()) { 
 		Log_error("Network initialize timeout.");
 		return;
 	}
-	Log_info("Network initialize done.");
 
 	// Set MQTT server 
-	if(!mqtt.setServer("www.lambor.win", 1883)) {
+	if(!mqtt.setServer(server, port)) {
 		Log_error("Set MQTT server failed");
 		return;
 	} else {
-		Log_info("Set MQTT server success.");
+		Logln(PRE_FIX"Set MQTT server success.");
 	}
 
 	// Set will topic
@@ -39,7 +44,7 @@ void setup() {
 		Log_error("Set MQTT will topic failed");
 		return;
 	} else {
-		Log_info("Set MQTT will topic success.");
+		Logln(PRE_FIX"Set MQTT will topic success.");
 	}
 
 	// Set will message
@@ -47,30 +52,24 @@ void setup() {
 		Log_error("Set MQTT will msg failed");
 		return;
 	} else {
-		Log_info("Set MQTT will msg success.");
+		Logln(PRE_FIX"Set MQTT will msg success.");
 	}
 
 	// Connect to server
-	if(!mqtt.connect()) {
-		Log_error("MQTT connect failed");
-		return;
-	} else {
-		Log_info("MQTT connect success.");
-	}
+	Logln(PRE_FIX"Connecting to server: " + String(server));
+	while(!mqtt.connect()) {}
+	Logln(CRLF PRE_FIX"Connected\n\r");
 }	
 
 void loop() 
-{		
-	if(!mqtt.connect()) {
-		return;
-	}
-	
-	static uint8_t tries = 0;
+{				
+	static uint8_t tries = 0;	
+	const char *topic = "Heat";
 	String msg = String(random(2000, 3000)*1.0/100.0) + " degree";
-	char *topic = "Heat";
+	
 		
 	if(mqtt.publish(topic, msg.c_str())) {
-		Log_info("MQTT published Topic " + String(topic) + "Messagea" + msg);	
+		Logln(PRE_FIX" published Topic " + String(topic) + " Messagea " + msg);	
 	} else {
 		Log_error("MQTT publish failed");
 		while(true);
@@ -80,11 +79,11 @@ void loop()
 	if(tries > 5)
 	{
 		if(mqtt.disconnect()) {
-			Log_info("MQTT disconnect.");
+			Logln(PRE_FIX"Disconnect.");
 		}
 		while(true);
 	}
-
+	
 	delay(2000);
 }
 
