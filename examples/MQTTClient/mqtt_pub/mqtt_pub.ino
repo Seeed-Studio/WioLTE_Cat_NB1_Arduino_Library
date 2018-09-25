@@ -11,15 +11,15 @@
 MQTT mqtt;
 Ublox_sara_r4 ublox = Ublox_sara_r4();
 
-char *server = "mqtt server";
+char *server = "server name or IP";
 uint16_t port = 1883;
 
 void setup() {
 	Log_info("Begin...");
 	
 	ublox.powerOn();
-	Log("Waitting for module to alive...");
-	while(false == ublox.isAlive()){
+	Log_info("Waitting for module to alive...");
+	while(false == ublox.isAlive()) {
 		Log(".");
 		delay(100);
 	}  
@@ -39,20 +39,12 @@ void setup() {
 		Logln(PRE_FIX"Set MQTT server success.");
 	}
 
-	// Set will topic
-	if(!mqtt.setWillTopic("Heat")) {
-		Log_error("Set MQTT will topic failed");
+	// Set will
+	if(!mqtt.setWill("Heat", "ublox n/r410")) {
+		Log_error("Set MQTT will failed");
 		return;
 	} else {
-		Logln(PRE_FIX"Set MQTT will topic success.");
-	}
-
-	// Set will message
-	if(!mqtt.setWillMessage("ublox n/r410 online")) {
-		Log_error("Set MQTT will msg failed");
-		return;
-	} else {
-		Logln(PRE_FIX"Set MQTT will msg success.");
+		Logln(PRE_FIX"Set MQTT will success.");
 	}
 
 	// Connect to server
@@ -72,7 +64,7 @@ void loop()
 		Logln(PRE_FIX" published Topic " + String(topic) + " Messagea " + msg);	
 	} else {
 		Log_error("MQTT publish failed");
-		while(true);
+		// while(true);
 	}
 
 	tries++;
@@ -81,7 +73,8 @@ void loop()
 		if(mqtt.disconnect()) {
 			Logln(PRE_FIX"Disconnect.");
 		}
-		while(true);
+		Log_info("Enter AT command loop");
+		while(true) AT_bypass();
 	}
 	
 	delay(2000);

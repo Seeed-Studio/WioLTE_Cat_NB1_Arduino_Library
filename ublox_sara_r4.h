@@ -78,6 +78,8 @@ enum FtpModes {
 
 class Ublox_sara_r4
 {
+	protected:
+		bool isDirectLinkMode;
 	public:
 		uint32_t _u32ip;
 		char ip_string[20] = {'\0'};
@@ -203,6 +205,7 @@ class Ublox_sara_r4
 
 		/**
 		 * Connect to APN
+		 * TO-DO 
 		 */
 		// bool connectAPN();
 
@@ -290,13 +293,22 @@ class Ublox_sara_r4
 		bool sockConnect(uint8_t sockid, char *ip, uint16_t port);
 		bool sockClose(int sockid);
 		int getSocketError(void);
-		bool socketWrite(uint8_t sockid, char *ip, char *port, char oneByte);
-		bool socketWrite(uint8_t sockid, char *ip, char *port, char *content);
-		void socketWrite(uint8_t *data);
+		// bool socketWrite(uint8_t sockid, char *ip, char *port, char oneByte);
+		// bool socketWrite(uint8_t sockid, char *ip, char *port, char *content);
+		void socketWrite(uint8_t *data, uint16_t dataSize);
 		void socketWrite(uint8_t data);
 		bool udpSendTo(uint8_t sockid, char *ip, char *port, char oneByte);
-		// void enterDirectLink();
-		// void exitDirectLink();
+
+		/**
+		 * Enable TCP UDP direct link mode, thus use AT command to operate connected session
+		*/
+		bool enableDirectLinkMode(void);
+
+		/**
+		 * Disable TCP UDP direct link mode, thus write or read message straightly from model.
+		*/
+		bool disableDirectLinkMode(void);
+
 		/**
 		 * Send udp message.
 		 * @sockid - socket id created before.
@@ -306,7 +318,7 @@ class Ublox_sara_r4
 		 * 
 		 * @return - return true for success, false for failure.
 		*/
-		bool udpSendTo(uint8_t sockid, char *ip, char *port, char *content);
+		bool udpSendTo(uint8_t sockid, char *ip, char *port, char *data, uint16_t dataSize);
 
 		/************************** MCU Pin Definitions **************************/
 

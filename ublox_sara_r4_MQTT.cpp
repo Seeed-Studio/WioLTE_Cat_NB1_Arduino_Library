@@ -2,19 +2,13 @@
 
 #include <ublox_sara_r4.h>
 #include <UART_Interface.h>
-
 #include <ublox_sara_r4_mqtt.h>
 
-class MQTTPacketInfo
+
+MQTT::MQTT()
 {
-public:
-    char *_topic;
-    char *_msg;
-    bool _dup;
-    uint8_t _qos;
-    bool _retain;
-    uint16_t _msg_id;
-};
+	callback = NULL;
+}
 
 bool MQTT::setServer(char * server, uint16_t port)
 {
@@ -85,18 +79,26 @@ bool MQTT::clearSession(uint8_t clear)
 	return retVal;
 }
 
-bool MQTT::setWill(char *topic, char *msg, uint8_t qos = 0, uint8_t retain = 0)
+bool MQTT::setWill(char *topic, char *msg, uint8_t qos, uint8_t retain)
 {
 	bool retVal = false;
 	char txBuf[64] = {'\0'};
 
 	sprintf(txBuf, "AT+UMQTTWTOPIC=%d,%d,%s"CRLF, qos, retain, topic);
 	retVal = check_with_cmd(txBuf, "+UMQTTWTOPIC: 1", CMD);
+	if(!retVal) {
+		debugPrintln(PRE_FIX_ERR"Set will topic error");
+		return false;
+	} 
 
 	sprintf(txBuf, "AT+UMQTTWMSG=\"%s\""CRLF, msg);
-	retVal &= check_with_cmd(txBuf, "+UMQTTWMSG: 1", CMD);
+	retVal = check_with_cmd(txBuf, "+UMQTTWMSG: 1", CMD);
+	if(!retVal) {
+		debugPrintln(PRE_FIX_ERR"Set will msg error");
+		return false;
+	}
 
-	return retVal;
+	return true;
 }
 
 bool MQTT::clearWill(void)
@@ -107,33 +109,11 @@ bool MQTT::clearWill(void)
 	sprintf(txBuf, "AT+UMQTTWTOPIC=%d,%d,%s"CRLF, 0, 0, "");
 	retVal = check_with_cmd(txBuf, "+UMQTTWTOPIC: 1", CMD);
 
-	sprintf(txBuf, "AT+UMQTTWMSG=\"%s\""CRLF, msg);
+	sprintf(txBuf, "AT+UMQTTWMSG=\"%s\""CRLF, "");
 	retVal &= check_with_cmd(txBuf, "+UMQTTWMSG: 1", CMD);
 
 	return retVal;
 }
-
-// bool MQTT::setWillTopic(char *topic)
-// {
-// 	bool retVal = false;
-// 	char txBuf[64] = {'\0'};
-
-// 	sprintf(txBuf, "AT+UMQTTWTOPIC=0,0,%s"CRLF, topic);
-// 	retVal = check_with_cmd(txBuf, "+UMQTTWTOPIC: 1", CMD);
-	
-// 	return retVal;
-// }
-
-// bool MQTT::setWillMessage(char *message)
-// {
-// 	bool retVal = false;
-// 	char txBuf[64] = {'\0'};
-
-// 	sprintf(txBuf, "AT+UMQTTWMSG=\"%s\""CRLF, message);
-// 	retVal = check_with_cmd(txBuf, "+UMQTTWMSG: 1", CMD);
-// 	return retVal;
-// }
-
 
 bool MQTT::saveProfile()
 {
@@ -213,13 +193,8 @@ bool MQTT::ping(char * server)
 	return retVal;
 }
 
-void MQTT::setPublishHandler(void (*handler)(char *topic, const char *msg, size_t msg_length))
-    _publishHandler = handler;
-}
-
-void setPacketHandler(void (*handler)(char *pckt, size_t len))
-{
-    _packetHandler = handler;
+void MQTT::onMessage(MQTTClientCallback cb) {	
+	callback = cb;
 }
 
 bool MQTT::loop(void)
@@ -236,16 +211,15 @@ bool MQTT::loop(void)
 		char mqtt_packets[256] = {'\0'};		
 		char topic[128] = {'\0'};
 		char msg[128] = {'\0'};
-		MQTTPacketInfo pckt_info;
 
 		pckt_size = read_buffer(mqtt_packets, sizeof(mqtt_packets));
 		if(NULL != (p = strstr(mqtt_packets, "+UUMQTTCM: 6")))
 		{
 			if(1 == sscanf(p, "+UUMQTTCM: 6,%d", &msgCnt))
-			{
-				Log_info("Recv message count: ");
-				Log(msgCnt);
-				Log(CRLF);
+			{				
+				// Log_info("Recv message count: ");
+				// Log(msgCnt);
+				// Log(CRLF);
 
 				clean_buffer(mqtt_packets, sizeof mqtt_packets);
 				send_cmd("AT+UMQTTC=6"CRLF);
@@ -256,69 +230,23 @@ bool MQTT::loop(void)
 					p = strstr(p, "Topic:");
 					if(2 == sscanf(p, "Topic:%s"CRLF"Msg:%s", topic, msg))
 					{
-						memcpy(pckt_info._topic, topic, strlen(topic));
-						memcpy(pckt_info._msg, msg, strlen(msg));						
+						if(NULL != callback)
+						{
+							callback((char*)topic, (char*)msg);
+						}						
 					}
 				}
 			}
 		}
 		if (pckt_size > 0) 
 		{
-				// TODO
-
-				Log_info("received packet:");
-				dumpData((uint8_t*)mqtt_packets, pckt_size);
-
-// 				// Notice that there can be multiple MQTT packet
-// 				pckt_ix = 0;
-// 				while (pckt_ix < pckt_size) {
-// 						switch ((mqtt_packets[pckt_ix] >> 4) & 0xF) {
-// 						case CPT_PUBLISH:
-
-// 								memset(&pckt_info, 0, sizeof(pckt_info));
-// 								pckt_info._topic = topic;
-// 								pckt_info._topic_size = sizeof(topic);
-// 								pckt_info._msg = msg;
-// 								pckt_info._msg_size = sizeof(msg);
-
-// 								status = dissectPublishPacket(&mqtt_packets[pckt_ix], pckt_size - pckt_ix, pckt_info);
-// 								if (status) {
-// 										if (pckt_info._qos == 0) {
-// 												// Nothing else to do
-// 										} else if (pckt_info._qos == 1) {
-// 												// TODO
-// 												// Send PUBACK
-// 										} else if (pckt_info._qos == 2) {
-// 												// TODO
-// 												// Send PUBREC
-// 										} else {
-// 												// Shouldn't happen
-// 										}
-
-// 										if (_publishHandler) {
-// 												_publishHandler(topic, msg, pckt_info._msg_truncated_length);
-// 										}
-// 										pckt_ix += pckt_info._pckt_length;
-// 								}
-// 								else {
-// 										// TODO
-// 										// We don't know if we can trust the computed length
-// 										// For now skip the rest
-// 										pckt_ix = pckt_size;
-// 								}
-// 								break;
-// 						default:
-// 								if (_packetHandler) {
-// 										_packetHandler(&mqtt_packets[pckt_ix], pckt_size - pckt_ix);
-// 								}
-// 								// TODO
-// 								// We don't know the packet size. There can be multiple
-// 								// For now skip the rest
-// 								pckt_ix = pckt_size;
-// 								break;
-// 						}
-// 				}
+				/* Log out anything received from model */	
+				// Log("[MQTT] received packet with length ");
+				// Log(strlen(mqtt_packets));
+				// Logln(":");
+				// dumpData((uint8_t*)mqtt_packets, strlen(mqtt_packets));
 		}
+		
 		return true;
 	}
 

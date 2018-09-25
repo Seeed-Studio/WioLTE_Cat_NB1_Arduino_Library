@@ -11,16 +11,22 @@
 MQTT mqtt;
 Ublox_sara_r4 ublox = Ublox_sara_r4();
 
-char *server = "www.lambor.win";
-uint16_t port = "1883";
+char *server = "server name or IP";
+uint16_t port = 1883;
 char *topic = "Heat";
+
+void messageReceived(char* cb_topic, char* cb_msg) {
+	Logln(PRE_FIX"incoming msg: ");
+	Log("Topic: "); Logln(cb_topic);
+	Log("Msg: "); Logln(cb_msg);
+}
 
 void setup() {
 	Log_info("Begin...");
 	
 	ublox.powerOn();
 	Log_info("Waitting for module to alive...");
-	while(false == ublox.isAlive()){		
+	while(false == ublox.isAlive()) {		
 		Log(".");
 		delay(100);
 	}
@@ -33,26 +39,18 @@ void setup() {
 	}
 
 	// Set MQTT server 
-	iF(mqtt.setServer(server, port)) {
+	if(mqtt.setServer(server, port)) {
 		Logln(PRE_FIX"Set mqtt server success.");
-	else {
+	} else {
 		Log_error("Set mqtt server failed");
 	}
 	
-	// Set will topic
-	if(!mqtt.setWillTopic("Heat")) {
-		Log_error("Set MQTT will topic failed");
+	// Set will
+	if(!mqtt.setWill("Heat", "ublox n/r410")) {
+		Log_error("Set MQTT will failed");
 		return;
 	} else {
-		Logln(PRE_FIX"Set MQTT will topic success.");
-	}
-
-	// Set will message
-	if(!mqtt.setWillMessage("ublox n/r410 online")) {
-		Log_error("Set MQTT will msg failed");
-		return;
-	} else {
-		Logln(PRE_FIX"Set MQTT will msg success.");
+		Logln(PRE_FIX"Set MQTT will success.");
 	}
 
 	// Connect to server
@@ -62,15 +60,25 @@ void setup() {
 
 	// Set subscribe
 	if(mqtt.subscribe("Heat")) {
-		Logln(PRE_FIX"mqtt subscribe topic: " + String(topic))
+		Logln(PRE_FIX"mqtt subscribe topic: " + String(topic));
 	} else {
 		Log_error("mqtt subscribe failed");
 	}
 
+	mqtt.onMessage(messageReceived);
+
 }	
 
-void loop() {		
-    mqtt.loop();
-    // AT_bypass();
+void loop() {	
+    if(mqtt.loop()) {
+		return;
+	}
+
+	if(mqtt.subscribe("Heat")) {
+		Logln(PRE_FIX"mqtt subscribe topic: " + String(topic));
+	} else {
+		Log_error("mqtt subscribe failed");
+	}
+
 }
 

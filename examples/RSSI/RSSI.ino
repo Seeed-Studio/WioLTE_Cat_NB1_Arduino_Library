@@ -7,9 +7,10 @@ void setup() {
   
   SerialDebug.println("Begin...");
   ublox.powerOn();
-  while(false == ublox.Check_If_Power_On()){
-    SerialDebug.println("Waitting for module to alvie...");
-    delay(1000);
+  SerialDebug.print("Waitting for module to alvie...");
+  while(false == ublox.isAlive()){
+    SerialDebug.print(".");
+    delay(100);
   }  
   SerialDebug.println("Power On O.K!");
 

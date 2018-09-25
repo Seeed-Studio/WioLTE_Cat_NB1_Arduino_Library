@@ -67,7 +67,7 @@ int wait_readable (int wait_time_sec)
 void dumpData(uint8_t *data, uint16_t dataSize)
 {
     for(uint16_t i = 0; i < dataSize; i++) {
-        SerialDebug.print(data[i]);
+        SerialDebug.write(data[i]);
     }
     SerialDebug.println();
 }
@@ -221,7 +221,7 @@ void send_cmd(const __FlashStringHelper* cmd)
   int i = 0;
   const char *ptr = (const char *) cmd;
   while (pgm_read_byte(ptr + i) != '\0') {
-    send_byte(pgm_read_byte(ptr + i++));
+    send_byte(pgm_read_byte(ptr + i++));send_byte(pgm_read_byte(ptr + i++));
   }
 }
 

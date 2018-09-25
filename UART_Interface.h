@@ -34,9 +34,11 @@
 #include <Arduino.h>
 #include <stdbool.h>
 
-#define CR	"\r"
+// #define CR	"\r"
 #define LF	 "\n"
 #define CRLF "\r\n"
+#define PRE_FIX_ERR "[ERROR] "
+#define PRE_FIX_INFO "[INFO] "
 
 #define DEFAULT_TIMEOUT              (1UL)   //seconds
 #define DEFAULT_INTERCHAR_TIMEOUT (3000UL)   //miliseconds
@@ -93,5 +95,5 @@ void send_cmd(const __FlashStringHelper* cmd);
 void send_cmd_P(const char* cmd);
 bool wait_for_resp(const char* resp, DataType type, unsigned int timeout_sec = DEFAULT_TIMEOUT, unsigned int chartimeout_ms = DEFAULT_INTERCHAR_TIMEOUT);
 bool wait_for_resp_dot(const char* resp, DataType type, unsigned int timeout_sec);
-bool  check_with_cmd(const char* cmd, const char *resp, DataType type, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT*5);
-bool  check_with_cmd(const __FlashStringHelper* cmd, const char *resp, DataType type, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT);
+bool check_with_cmd(const char* cmd, const char *resp, DataType type, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT*5);
+bool check_with_cmd(const __FlashStringHelper* cmd, const char *resp, DataType type, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT);
