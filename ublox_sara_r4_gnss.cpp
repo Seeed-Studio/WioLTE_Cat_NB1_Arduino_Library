@@ -1,11 +1,11 @@
 /*
  * gnss.cpp
- * A library for SeeedStudio GPS Tracker LTE GNSS
+ * A library for WioLTE Cat NB1
  *
- * Copyright (c) 2017 Seeed Technology Co., Ltd.
+ * Copyright (c) 2018 Seeed Technology Co., Ltd.
  * Website    : www.seeed.cc
  * Author     : lambor
- * Create Time: June 2017
+ * Create Time: September 2018
  * Change Log :
  *
  * The MIT License (MIT)

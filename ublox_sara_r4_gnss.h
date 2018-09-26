@@ -1,11 +1,11 @@
 /*
  * gnss.h
- * A library for SeeedStudio GPS Tracker BT 
+ * A library for WioLTE Cat NB1
  *
- * Copyright (c) 2017 Seeed Technology Co., Ltd.
+ * Copyright (c) 2018 Seeed Technology Co., Ltd.
  * Website    : www.seeed.cc
- * Author     : lawliet zou, lambor
- * Create Time: April 2017
+ * Author     : lambor
+ * Create Time: September 2018
  * Change Log :
  *
  * The MIT License (MIT)
@@ -61,7 +61,7 @@ public:
     /** Get coordinate infomation
      *
      */
-    // bool getCoordinate(void);
+    bool getCoordinate(void);
 
     /**
      * Aquire GPS sentence
