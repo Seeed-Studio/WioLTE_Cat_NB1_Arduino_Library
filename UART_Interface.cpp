@@ -32,7 +32,7 @@
 #include <UART_Interface.h>
 
 
-void serialPort_init()
+void init_AtTransport()
 {
     SerialModule.begin(115200);
 }
@@ -52,25 +52,30 @@ int check_readable()
     return SerialModule.available();
 }
 
-int wait_readable (int wait_time)
+int wait_readable (int wait_time_sec)
 {
-    unsigned long timerStart;
+    unsigned long timerStart = NOW;
     int dataLen = 0;
     timerStart = millis();
-    while((unsigned long) (millis() - timerStart) > wait_time * 1000UL) {
-        delay(500);
-        dataLen = check_readable();
-        if(dataLen > 0){
-            break;
-        }
-    }
+    do {
+       dataLen = check_readable();
+    } while(dataLen == 0 && !IS_TIMEOUT(timerStart, wait_time_sec * 1000u));
+
     return dataLen;
+}
+
+void dumpData(uint8_t *data, uint16_t dataSize)
+{
+    for(uint16_t i = 0; i < dataSize; i++) {
+        SerialDebug.write(data[i]);
+    }
+    SerialDebug.println();
 }
 
 void flush_serial()
 {
     while(check_readable()){
-        DEBUG_BYTE(SerialModule.read());
+        debugPrint(SerialModule.read());
     }
 }
 
@@ -78,13 +83,13 @@ uint16_t read_string_line(char *buffer, int count, unsigned int timeout, unsigne
 {
     uint16_t i = 0;
     bool is_timeout = false;
-    unsigned long timerStart, prevChar;
+    unsigned long timerStart, now;
     timerStart = millis();
-    prevChar = 0;
+    now = 0;
     while(1) {
         while (check_readable()) {
             char c = SerialModule.read();
-            prevChar = millis();
+            now = millis();
             buffer[i++] = c;
             if( (i >= count) || ('\n' == c) || ('\0' == c) ) break;
         }
@@ -92,8 +97,8 @@ uint16_t read_string_line(char *buffer, int count, unsigned int timeout, unsigne
         if ((unsigned long) (millis() - timerStart) > timeout * 1000UL) {
             break;
         }
-        //If interchar Timeout => return FALSE. So we can return sooner from this function. Not DO it if we dont recieve at least one char (prevChar <> 0)
-        if (((unsigned long) (millis() - prevChar) > chartimeout) && (prevChar != 0)) {
+        //If interchar Timeout => return FALSE. So we can return sooner from this function. Not DO it if we dont recieve at least one char (now <> 0)
+        if (((unsigned long) (millis() - now) > chartimeout) && (now != 0)) {
             break;
         }
     }
@@ -106,14 +111,14 @@ uint16_t read_string_until(char *buffer, int count, char *pattern, unsigned int 
     uint8_t sum = 0;
     uint8_t len = strlen(pattern);
     bool is_timeout = false;
-    unsigned long timerStart, prevChar;
+    unsigned long timerStart, now;
     
     timerStart = millis();
-    prevChar = 0;
+    now = 0;
     while(1) {
         if(check_readable()) {
             char c = SerialModule.read();
-            prevChar = millis();
+            now = millis();
             buffer[i++] = c;
             if(i >= count)break;
             sum = (c==pattern[sum]) ? sum+1 : 0;
@@ -123,26 +128,26 @@ uint16_t read_string_until(char *buffer, int count, char *pattern, unsigned int 
         if ((unsigned long) (millis() - timerStart) > timeout * 1000UL) {
             break;
         }
-        //If interchar Timeout => return FALSE. So we can return sooner from this function. Not DO it if we dont recieve at least one char (prevChar <> 0)
-        if (((unsigned long) (millis() - prevChar) > chartimeout) && (prevChar != 0)) {
+        //If interchar Timeout => return FALSE. So we can return sooner from this function. Not DO it if we dont recieve at least one char (now <> 0)
+        if (((unsigned long) (millis() - now) > chartimeout) && (now != 0)) {
             break;
         }
     }
     return (uint16_t)(i - 1);
 }
 
-uint16_t read_buffer(char *buffer, int count, unsigned int timeout, unsigned int chartimeout)
+uint16_t read_buffer(uint8_t *buffer, uint16_t count, uint16_t timeout, uint16_t chartimeout)
 {
     uint16_t i = 0;
     bool is_timeout = false;
-    unsigned long timerStart, prevChar;
+    unsigned long timerStart, now;
     timerStart = millis();
-    prevChar = 0;
+    now = 0;
     while(1) {
         if(check_readable()) {
             char c = SerialModule.read();
-            DEBUG_BYTE(c);
-            prevChar = millis();
+            debugPrint(c);
+            now = millis();
             buffer[i++] = c;
             if(i >= count)break;
         }
@@ -150,8 +155,35 @@ uint16_t read_buffer(char *buffer, int count, unsigned int timeout, unsigned int
         if ((unsigned long) (millis() - timerStart) > timeout * 1000UL) {
             break;
         }
-        //If interchar Timeout => return FALSE. So we can return sooner from this function. Not DO it if we dont recieve at least one char (prevChar <> 0)
-        if (((unsigned long) (millis() - prevChar) > chartimeout) && (prevChar != 0)) {
+        //If interchar Timeout => return FALSE. So we can return sooner from this function. Not DO it if we dont recieve at least one char (now <> 0)
+        if (((unsigned long) (millis() - now) > chartimeout) && (now != 0)) {
+            break;
+        }
+    }
+    return (uint16_t)(i - 1);
+}
+
+uint16_t read_buffer(char *buffer, uint16_t count, uint16_t timeout, uint16_t chartimeout)
+{
+    uint16_t i = 0;
+    bool is_timeout = false;
+    unsigned long timerStart, now;
+    timerStart = millis();
+    now = 0;
+    while(1) {
+        if(check_readable()) {
+            char c = SerialModule.read();
+            debugPrint(c);
+            now = millis();
+            buffer[i++] = c;
+            if(i >= count)break;
+        }
+        if(i >= count)break;
+        if ((unsigned long) (millis() - timerStart) > timeout * 1000UL) {
+            break;
+        }
+        //If interchar Timeout => return FALSE. So we can return sooner from this function. Not DO it if we dont recieve at least one char (now <> 0)
+        if (((unsigned long) (millis() - now) > chartimeout) && (now != 0)) {
             break;
         }
     }
@@ -188,68 +220,91 @@ void send_cmd(const __FlashStringHelper* cmd)
 {
   int i = 0;
   const char *ptr = (const char *) cmd;
-  while (pgm_read_byte(ptr + i) != 0x00) {
-    send_byte(pgm_read_byte(ptr + i++));
+  while (pgm_read_byte(ptr + i) != '\0') {
+    send_byte(pgm_read_byte(ptr + i++));send_byte(pgm_read_byte(ptr + i++));
   }
 }
 
 void send_cmd_P(const char* cmd)
 {
-  while (pgm_read_byte(cmd) != 0x00)
+  while (pgm_read_byte(cmd) != '\0')
     send_byte(pgm_read_byte(cmd++));
 }
 
-boolean Test_AT(void)
-{
-    return check_with_cmd("AT\r\n","OK",CMD);
-}
-
-void send_End_Mark(void)
-{
-    send_byte((char)26);
-}
-
-boolean wait_for_resp(const char* resp, DataType type, unsigned int timeout, unsigned int chartimeout)
+bool wait_for_resp(const char* resp, DataType type, unsigned int timeout_sec, unsigned int chartimeout_ms)
 {
     int len = strlen(resp);
     int sum = 0;
-    unsigned long timerStart, prevChar;    //prevChar is the time when the previous Char has been read.
-    timerStart = millis();
-    prevChar = 0;
+    uint32_t timerStart = millis(), timerPreChar = 0;    //timerPreChar is the time when the previous Char has been read.
+
     while(1) {
         if(check_readable()) {
             char c = SerialModule.read();            
-            DEBUG_BYTE(c);
-            prevChar = millis();
+            debugPrint(c);
+            timerPreChar = millis();
             sum = (c==resp[sum]) ? sum+1 : 0;
             if(sum == len)break;
         }
-        if ((unsigned long) (millis() - timerStart) > timeout * 1000UL) {
+        if (IS_TIMEOUT(timerStart, timeout_sec * 1000u)) {
             return false;
         }
-        //If interchar Timeout => return FALSE. So we can return sooner from this function.
-        if (((unsigned long) (millis() - prevChar) > chartimeout) && (prevChar != 0)) {
+        //If interchar Timeout => return FALSE. So we can return sooner from this function.  chartimeout_ms
+        if (IS_TIMEOUT(timerPreChar, chartimeout_ms) && (timerPreChar != 0)) {
+            return false;
+        }        
+    }
+    debugPrintln("");
+    //If is a CMD, we will finish to read buffer.
+    if(type == CMD) flush_serial();
+    return true;
+}
+
+bool wait_for_resp_dot(const char* resp, DataType type, unsigned int timeout_sec)
+{
+    int len = strlen(resp);
+    int sum = 0;
+    uint32_t timerStart = millis();
+    uint32_t dotShowInterval = 100, lastTimeDotShow = millis();
+
+    while(true) {
+        if(check_readable()) {
+            char c = SerialModule.read();            
+            debugPrint(c);
+            sum = (c==resp[sum]) ? sum+1 : 0;
+            if(sum == len)break;
+        }
+        if (IS_TIMEOUT(timerStart, timeout_sec * 1000u)) {
             return false;
         }
 
+        if((millis() - lastTimeDotShow) > dotShowInterval) {
+            lastTimeDotShow = millis();
+            Log(".");            
+        }
+        
+
     }
-    #ifdef UART_DEBUG
-    SerialDebug.println();
-    #endif
+    debugPrintln("");
     //If is a CMD, we will finish to read buffer.
     if(type == CMD) flush_serial();
     return true;
 }
 
 
-boolean check_with_cmd(const char* cmd, const char *resp, DataType type, unsigned int timeout, unsigned int chartimeout)
+bool check_with_cmd(const char* cmd, const char *resp, DataType type, unsigned int timeout, unsigned int chartimeout)
 {
     send_cmd(cmd);
     return wait_for_resp(resp,type,timeout,chartimeout);
 }
 
+// bool check_with_cmd(uint8_t *cmd, uint8_t *resp, DataType type, unsigned int timeout, unsigned int chartimeout)
+// {
+//     send_cmd(cmd);
+//     return wait_for_resp(resp,type,timeout,chartimeout);
+// }
+
 //HACERR que tambien la respuesta pueda ser FLASH STRING
-boolean check_with_cmd(const __FlashStringHelper* cmd, const char *resp, DataType type, unsigned int timeout, unsigned int chartimeout)
+bool check_with_cmd(const __FlashStringHelper* cmd, const char *resp, DataType type, unsigned int timeout, unsigned int chartimeout)
 {
     send_cmd(cmd);
     return wait_for_resp(resp,type,timeout,chartimeout);

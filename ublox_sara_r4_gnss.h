@@ -28,14 +28,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-#ifndef __UBLOX_SARA_R4_GNSS_H__
-#define __UBLOX_SARA_R4_GNSS_H__
+#pragma once
 
 #include <stdio.h>
 #include <ublox_sara_r4.h>
 #include <UART_Interface.h>
-#include <config.h>
 
 class UBLOX_SARA_R4_GNSS : public Ublox_sara_r4
 {
@@ -44,8 +41,8 @@ public:
     double latitude;
     char str_longitude[16];
     char str_latitude[16];
-    double ref_longitude = 22.584322;
-    double ref_latitude = 113.966678;
+    double ref_longitude = 0.000000;
+    double ref_latitude = 0.000000;
     char North_or_South[2];
     char West_or_East[2];
 
@@ -73,4 +70,3 @@ public:
     
 };
 
-#endif

@@ -7,10 +7,12 @@ Ublox_sara_r4 ublox = Ublox_sara_r4();
 void setup() {  
   SerialDebug.println("Begin...");
   ublox.powerOn();
-  while(false == ublox.Check_If_Power_On()){
-    SerialDebug.println("Waitting for module to alvie...");
+  SerialDebug.println("Waitting for module to alvie...");
+  while(false == ublox.isAlive()){
+    SerialDebug.print(".");
     delay(1000);
   }  
+  SerialDebug.println();
   SerialDebug.println("Power On O.K!");
 
   delay(100);

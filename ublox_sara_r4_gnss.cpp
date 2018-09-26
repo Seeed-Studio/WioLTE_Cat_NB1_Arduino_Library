@@ -31,20 +31,16 @@
 
 #include <ublox_sara_r4_gnss.h>
 
-void peripherial_init(void)
-{
-  SerialGNSS.begin(SerialGNSS_BAUDRATE);
-}
 
 bool UBLOX_SARA_R4_GNSS::open_GNSS(void)
 {
-  peripherial_init();
-  enableGNSSPower();
+  SerialGNSS.begin(SerialGNSS_BAUDRATE);
+  turnOnGNSSPower();
 }
 
 bool UBLOX_SARA_R4_GNSS::close_GNSS()
 {
-  disableGNSSPower();
+  turnOffGNSSPower();
 }
 
 bool UBLOX_SARA_R4_GNSS::dataFlowMode(void)

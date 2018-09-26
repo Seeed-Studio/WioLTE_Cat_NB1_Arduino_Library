@@ -4,17 +4,21 @@
 Ublox_sara_r4 ublox = Ublox_sara_r4();
 
 void setup() {  
-  SerialDebug.println("Begin...");
+  Log_info("Begin...");
   ublox.powerOn();
-  while(false == ublox.Check_If_Power_On()){
-    SerialDebug.println("Waitting for module to alvie...");
+  while(false == ublox.isAlive()) {
+    Log_info("Waitting for module to alvie...");
     delay(1000);
   }  
-  SerialDebug.println("Power On O.K!");
+  Log_info("Power On O.K!");
 
-  delay(100);
-  check_with_cmd("AT+UGPIOC=23,10\r\n", "OK", CMD);
-  check_with_cmd("AT+UGPIOC=16,2\r\n", "OK", CMD);
+  if(!ublox.initialAtCommands()) 
+  {
+    Log_error("Failed to initialzie module.");
+  }
+
+  Log_info("Start AT commands loop");
+  
 }
 
 void loop() {

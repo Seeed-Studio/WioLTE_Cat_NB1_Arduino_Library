@@ -8,7 +8,7 @@ WS2812 strip = WS2812(LEN_NUM, ublox.RGB_LED_PIN);
 
 void setup() {
   // Set RGB LED power pin high
-  ublox.enableRGBPower();
+  ublox.turnOnRGBPower();
   strip.begin();
   strip.brightness = 20;
 }
