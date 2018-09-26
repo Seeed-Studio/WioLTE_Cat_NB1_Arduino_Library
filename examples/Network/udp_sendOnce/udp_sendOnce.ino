@@ -2,8 +2,8 @@
 
 Ublox_sara_r4 ublox = Ublox_sara_r4();
 
-char *server = "www.lambor.win";
-uint16_t port = 41234;
+char *server = "host";
+uint16_t port = 1234;
 int sockId = -1;
 
 void setup() {
@@ -11,14 +11,14 @@ void setup() {
 	
 	ublox.powerOn();
 	Log_info("Waitting for module to alvie...");
-	while(false == ublox.isAlive()){
+	while(false == ublox.isAlive()) {
 		Log(".");
 		delay(100);
 	}  
 	Logln("");
 
 	Log_info("Initializing network..");
-	if(!ublox.network_Init(30000)) { 
+	while(!ublox.network_Init(30000)) { 
 		Log_error("Network initialize timeout.");
 		return;
 	}
@@ -32,39 +32,24 @@ void setup() {
 	}
 	Log("[INFO] Create socket id: ");
 	Logln(sockId);
-	ublox.enableDirectLinkMode();
-	// if(!ublox.udpSendTo(sockId, ip, port, "Hello!")) {
-	// 	Log_error("UDP sendto error!");
-	// 	return;
-	// }
-	if(!ublox.sockConnect(sockId, server, port)) {
-		Log_error("connect to server failed.");
-	}
+
+	ublox.disableDirectLinkMode();
+
 	Log_info("Sent UDP message.");
-
-
-		
 }	
 
 void loop() {
 	static uint8_t tries = 0;
-	// char rtc[32] = {'\0'};
 
-	// ublox.GetRealTimeClock(rtc);
-	// Log("[RTC] ");
-	// Logln(rtc);
-	// if(ublox.udpSendTo(sockId, ip, port, rtc)) {
-	// 	Log_info("Sent UDP message successfully.");
-	// }
-	// else{
-	// 	Log_info("Failed to Sent message.");
-	// }
-
-	String str_msg = "ublox random number " + String(random(0,100));
-
-	ublox.socketWrite((uint8_t *)str_msg.c_str(), (uint16_t)str_msg.length());
-	Log_info("Send msg: " + str_msg);
-
+    String str_msg = "ublox random number " + String(random(0,100));
+    
+	if(ublox.udpSendTo(sockId, server, port, (char *)str_msg.c_str(), (uint16_t)str_msg.length())) {
+		Log_info("Send msg: " + str_msg);
+	}
+	else{
+		Log_info("Failed to Sent message.");
+	}
+	
 	tries++;
 	if(tries > 5) {
 		if(ublox.sockClose(sockId)) {

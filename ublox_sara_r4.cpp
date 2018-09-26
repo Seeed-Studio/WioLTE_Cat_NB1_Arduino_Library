@@ -44,8 +44,7 @@ void peripherial_Init()
 }
 
 Ublox_sara_r4::Ublox_sara_r4()
-{  
-  isDirectLinkMode = false;
+{    
   peripherial_Init();  
 }
 
@@ -174,38 +173,6 @@ bool Ublox_sara_r4::waitForNetworkRegistered(uint16_t timeout_sec)
 
   return true;
 }
-
-// bool Ublox_sara_r4::write(char *data)
-// {
-//     /** Socket client write process
-//      * 1.Open
-//      *      AT+QIOPEN=1,0,"TCP","mbed.org",80,0,1
-//      * 2 Set data lenght 
-//      *      AT+QISEND=0,53
-//      * 3.Put in data
-//      *      GET /media/uploads/mbed_official/hello.txt HTTP/1.0\r\n\r\n
-//      * 4.Close socket
-//      *      AT+QICLOSE=0
-//     */
-
-//     char cmd[32];
-//     int len = strlen(data); 
-//     snprintf(cmd,sizeof(cmd),"AT+QISEND=0,%d\r\n",len);
-//     if(!check_with_cmd(cmd,">", CMD, 2*DEFAULT_TIMEOUT)) {
-//         ERROR("ERROR:QISEND\r\n"
-//               "Data length: ");
-//         ERROR(len);
-//         return false;
-//     }
-        
-//     send_cmd(data);
-//     send_cmd("\r\n");
-//     // if(!check_with_cmd("\r\n","SEND OK", DATA, 2*DEFAULT_TIMEOUT)) {
-//     //     ERROR("ERROR:SendData");
-//     //     return false;
-//     // }   
-//     return true;
-// }
 
 bool Ublox_sara_r4::getSignalStrength(int *signal)
 {
@@ -465,7 +432,7 @@ int Ublox_sara_r4::createSocket(Socket_type sock_type, uint16_t port) {
     return newSockid;    
 }
 
-bool Ublox_sara_r4::sockConnect(uint8_t sockid, char *ip, uint16_t port)
+bool Ublox_sara_r4::sockConnect(uint8_t sockid, char *host, uint16_t port)
 {
     char txBuf[64];
     
@@ -475,7 +442,7 @@ bool Ublox_sara_r4::sockConnect(uint8_t sockid, char *ip, uint16_t port)
     }
 
     // Connect to server
-    sprintf(txBuf, "AT+USOCO=%d,\"%s\",%d\r\n", sockid, ip, port);
+    sprintf(txBuf, "AT+USOCO=%d,\"%s\",%d\r\n", sockid, host, port);
     if(!check_with_cmd(txBuf, "OK", CMD, 5)) {
       return false;
     }
@@ -500,18 +467,15 @@ bool Ublox_sara_r4::sockClose(int sockid)
         
   
   if(isDirectLinkMode) {
-    // if(!check_with_cmd("+++", "DISCONNECT", CMD, 5u)) {
-    //   Log_error("Can't close socket.");
-    // }
     delay(1000);
-    SerialModule.print("+++");
-    if(!wait_for_resp("DISCONNECT", CMD, 2u)) {
+    if(!check_with_cmd("+++", "DISCONNECT", CMD, 2u)) {
       Log_error("Can't close socket.");
     }
   } 
 
+  
   sprintf(txBuf, "AT+USOCL=%d\r\n", sockid);    
-  retVal = check_with_cmd(txBuf, "OK", CMD, 5);
+  retVal = check_with_cmd(txBuf, "OK", CMD, 10u);
   if(retVal == RET_OK)
   {
     usedSockId[sockid] = false;
@@ -542,30 +506,30 @@ int Ublox_sara_r4::getSocketError(void)
   return err_code;
 }
 
-// bool Ublox_sara_r4::socketWrite(uint8_t sockid, char *ip, char *port, char oneByte)
-// {
-//     char sendBuffer[32];
+bool Ublox_sara_r4::socketWrite(uint8_t sockid, char oneByte)
+{
+    char sendBuffer[32];
     
-//     if(!usedSockId[sockid]) {
-//         debugPrintln("Sockect id not exist.");
-//         return false;
-//     }
-//     sprintf(sendBuffer, "AT+USOWR=%d,%d,%c\r\n", sockid, 1, oneByte);    
-//     return check_with_cmd(sendBuffer, "OK", CMD, 5);
-// }
+    if(!usedSockId[sockid]) {
+        debugPrintln("Sockect id not exist.");
+        return false;
+    }
+    sprintf(sendBuffer, "AT+USOWR=%d,%d,%c\r\n", sockid, 1, oneByte);    
+    return check_with_cmd(sendBuffer, "OK", CMD, 5);
+}
 
-// bool Ublox_sara_r4::socketWrite(uint8_t sockid, char *ip, char *port, char *data, uint16_t dataSize) 
-// {
-//     char txBuf[32+dataSize];
+bool Ublox_sara_r4::socketWrite(uint8_t sockid, char *data, uint16_t dataSize) 
+{
+    char txBuf[32+dataSize];
 
-//     if(!usedSockId[sockid]) {
-//         debugPrintln("Sockect id not exist.");
-//         return false;
-//     }
+    if(!usedSockId[sockid]) {
+        debugPrintln("Sockect id not exist.");
+        return false;
+    }
 
-//     sprintf(txBuf, "AT+USOWR=%d,%d,%s\r\n", sockid, dataSize, data);    
-//     return check_with_cmd(txBuf, "OK", CMD, 5);
-// }
+    sprintf(txBuf, "AT+USOWR=%d,%d,%s\r\n", sockid, dataSize, data);    
+    return check_with_cmd(txBuf, "OK", CMD, 5);
+}
 
 void Ublox_sara_r4::socketWrite(uint8_t *data, uint16_t dataSize)
 {
@@ -581,7 +545,7 @@ void Ublox_sara_r4::socketWrite(uint8_t data)
   send_byte(data);
 }
 
-bool Ublox_sara_r4::udpSendTo(uint8_t sockid, char *ip, char *port, char oneByte)
+bool Ublox_sara_r4::udpSendTo(uint8_t sockid, char *host, uint16_t port, char oneByte)
 {
     char sendBuffer[64];
 
@@ -590,11 +554,11 @@ bool Ublox_sara_r4::udpSendTo(uint8_t sockid, char *ip, char *port, char oneByte
         return false;
     }
 
-    sprintf(sendBuffer, "AT+USOST=%d,\"%s\",%s,%d,\"%c\"\r\n", sockid, ip, port, 1, oneByte);    
+    sprintf(sendBuffer, "AT+USOST=%d,\"%s\",%d,%d,\"%c\"\r\n", sockid, host, port, 1, oneByte);    
     return check_with_cmd(sendBuffer, "OK", CMD, 5, 1000);
 }
 
-bool Ublox_sara_r4::udpSendTo(uint8_t sockid, char *ip, char *port, char *data, uint16_t dataSize) 
+bool Ublox_sara_r4::udpSendTo(uint8_t sockid, char *host, uint16_t port, char *data, uint16_t dataSize) 
 {
     char sendBuffer[32+dataSize];
 
@@ -603,7 +567,7 @@ bool Ublox_sara_r4::udpSendTo(uint8_t sockid, char *ip, char *port, char *data, 
         return false;
     }
 
-    sprintf(sendBuffer, "AT+USOST=%d,\"%s\",%s,%d,\"%s\"\r\n", sockid, ip, port, dataSize, data);
+    sprintf(sendBuffer, "AT+USOST=%d,\"%s\",%d,%d,\"%s\"\r\n", sockid, host, port, dataSize, data);
     return check_with_cmd(sendBuffer, "OK", CMD, 5);
 }
 
