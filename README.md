@@ -61,37 +61,55 @@ The Wio LTE Cat NB1 is combined with **STM32F405RGT6** and external **ublox MAX 
 
 ## Getting Started
 
-- [Install USB drive windows OS required](#install-usb-driver)
-- [Using Arduino](#using-arduino)
-  - [Install Seeed STM32F4 Board](#install-seeed-stm32f4-board)
-  - [Upload Arduino sketch](#upload-arduino-sketch)
-  - [Arduino Example GNSS](#arduino-example-gnss)
-  - [Arduino Example SD Card](#arduino-example-sd-card)
-  - [Arduino Example On board RGB LED](#arduino-example-on-board-rgb-led)
-  - [Arduino Example Network RSSI](#arduino-example-network-rssi)
-  - [Arduino Example TCP](#arduino-example-tcp)
-  - [Arduino Example UDP](#arduino-example-udp)
-  - [Arduino Example HTTP](#arduino-example-http)
-- [Using Espruino](#using-espruino)
-  - [Burning Espruino Firmware](#burning-expruino-firmware) 
-  - [Install Espruino web IDE](#install-espruino-web-ide)
-  - [How to use Espruino Web IDE](#how-to-use-espruino-web-ide)
-  - [Espruino example GPS](#espruino-example-gps)
-  - [Espruino example TCP](#espruino-example-tcp)
-  - [Espruino example UDP](#espruino-example-udp)
-  - [Espruino example Html](#espruino-example-html)
-  - [Espruino Example Onboard RGB LED](#espruino-example-onboard-rgb-led)
-  - [Espruino Example SD Card ](#espruino-example-sd-card)
-  - [Espruino Example Onboard RGB LED](#espruino-example-onboard-rgb-led)
-  - [Espruino Example Play with Grove Modules](#espruino-example-play-with-grove-modules)
-    - [Grove Button](#grove-button)
-    - [Grove Ralay](#grove-ralay)
-    - [Grove Light Sensor](#grove-light-sensor)
-    - [Grove GPS](#grove-gps)
-    - [Grove 3Axis Digital Accerlerometer(±16g)](#grove-3axis-digital-accerlerometer(±16g))
-    - [Grove Servo](#grove-servo)
-    - [Grove Temperature&Humidity Senseor](#grove-temperature&humidity-senseor)
-  - [Javascript APIs](#javascript-apis)
+- [Wio LTE Cat NB1](#wio-lte-cat-nb1)
+  - [Features](#features)
+  - [Specification](#specification)
+  - [Getting Started](#getting-started)
+    - [Install USB driver](#install-usb-driver)
+    - [Change DFU driver](#change-dfu-driver)
+    - [Using Arduino](#using-arduino)
+      - [Install Seeed STM32F4 Board](#install-seeed-stm32f4-board)
+      - [Upload Arduino sketch](#upload-arduino-sketch)
+      - [Arduino Example GNSS](#arduino-example-gnss)
+      - [Arduino Example SD Card](#arduino-example-sd-card)
+      - [Arduino Example On board RGB LED](#arduino-example-on-board-rgb-led)
+      - [Arduino Example Network RSSI](#arduino-example-network-rssi)
+      - [Arduino Example TCP](#arduino-example-tcp)
+      - [Arduino Example UDP](#arduino-example-udp)
+      - [Arduino Example HTTP](#arduino-example-http)
+      - [Arduino Example MQTT Subscribe](#arduino-example-mqtt-subscribe)
+      - [Arduino Example MQTT Publish](#arduino-example-mqtt-publish)
+      - [Arduino Example CoAP Client](#arduino-example-coap-client)
+      - [Arduino Example CoAP Server](#arduino-example-coap-server)
+    - [Using Espruino](#using-espruino)
+      - [Burning Espruino Firmware](#burning-espruino-firmware)
+      - [Install Espruino web IDE](#install-espruino-web-ide)
+      - [How to use Espruino Web IDE](#how-to-use-espruino-web-ide)
+      - [How to load modules](#how-to-load-modules)
+        - [Espruino Web IDE](#espruino-web-ide)
+        - [Load Module - the default mechanism](#load-module---the-default-mechanism)
+        - [Load Module from Github](#load-module-from-github)
+        - [Load Module from NPM](#load-module-from-npm)
+        - [Load Module from local folder](#load-module-from-local-folder)
+        - [Stand-alone Espruino](#stand-alone-espruino)
+        - [Internet-enabled Espruino](#internet-enabled-espruino)
+        - [Espruino example GPS](#espruino-example-gps)
+        - [Espruino example TCP](#espruino-example-tcp)
+        - [Espruino example UDP](#espruino-example-udp)
+        - [Espruino example Html](#espruino-example-html)
+      - [Espruino example Onboard RGB LED](#espruino-example-onboard-rgb-led)
+      - [Espruino example SD Card](#espruino-example-sd-card)
+      - [Espruino example Grove Modules](#espruino-example-grove-modules)
+        - [Grove Button](#grove-button)
+        - [Grove Ralay](#grove-ralay)
+        - [Grove Light Sensor](#grove-light-sensor)
+        - [Grove GPS](#grove-gps)
+        - [Grove 3Axis Digital Accerlerometer(±16g)](#grove-3axis-digital-accerlerometer%C2%B116g)
+        - [Grove Servo](#grove-servo)
+        - [Grove Temperature&Humidity Senseor](#grove-temperaturehumidity-senseor)
+      - [Javascript APIs](#javascript-apis)
+  - [FAQ](#faq)
+  - [Resource](#resource)
 
 
 
@@ -370,9 +388,10 @@ void setup() {
   
   SerialDebug.println("Begin...");
   ublox.powerOn();
-  while(false == ublox.Check_If_Power_On()){
-    SerialDebug.println("Waitting for module to alvie...");
-    delay(1000);
+  SerialDebug.print("Waitting for module to alvie...");
+  while(false == ublox.isAlive()){
+    SerialDebug.print(".");
+    delay(100);
   }  
   SerialDebug.println("Power On O.K!");
 
@@ -382,28 +401,336 @@ void setup() {
 }
 
 void loop() {
-	int signal;
-	if(ublox.getSignalStrength(&signal)) {
-		SerialDebug.print("RSSI: ");
-		SerialDebug.println(signal, DEC);
-	} else {
-		SerialDebug.print("Error");
-	}
+    int signal;
+    if(ublox.getSignalStrength(&signal)) {
+        SerialDebug.print("RSSI: ");
+        SerialDebug.println(signal, DEC);
+    } else {
+        SerialDebug.print("Error");
+    }
 
-	delay(1000);
- 
+    delay(1000);
 }
+
 ```
 
 
 #### Arduino Example TCP
-To-DO
+
+```c
+#include <ublox_sara_r4.h>
+
+Ublox_sara_r4 ublox = Ublox_sara_r4();
+
+char *server = "host";
+uint16_t port = 1234;
+int sockId = -1;
+
+void setup() {
+  Log_info("Begin...");
+  ublox.powerOn();
+  Log_info("Waitting for module to alvie...");
+  while(false == ublox.isAlive()){
+    Log(".");
+    delay(100);
+  } 
+  Logln(); 
+
+  Log_info("Initializing network...");
+  while(!ublox.network_Init(30000)) { 
+    Log_error("Network initialize timeout.");
+  }
+  Log_info("APN: " + String(ublox._apn));
+  Log_info("Local IP: " + String(ublox.ip_string));
+  Log_info("Operator: " + String(ublox._operator));
+  Log_info("Network attached.");
+
+  // This method is import for setting transparent session
+  // use disableDirectLinkMode() to use nontransparent session  
+  ublox.enableDirectLinkMode();
+
+  if(-1 == (sockId = ublox.createSocket(TCP))) {
+    Log_error("Create socket error!");
+    return;
+  }
+  if(!ublox.sockConnect(sockId, server, port)) {
+    Log_error("connect to server failed.");
+  } 
+  Log_info("Sent TCP message in direct link mode.");
+
+}  
+
+void loop() {
+  static uint8_t tries = 0;
+  String str_msg = "ublox random number " + String(random(0,100));
+
+  ublox.socketWrite((uint8_t *)str_msg.c_str(), (uint16_t)str_msg.length());
+  Log_info("Send msg: " + str_msg);
+
+  tries++;
+  if(tries > 5) {
+    if(ublox.sockClose(sockId)) {
+      Log_info("Close socket.");
+    }
+    Log_info("Enter AT command mode.");
+    while(true) AT_bypass();
+  }
+
+  delay(2000);
+}
+
+
+```
 
 #### Arduino Example UDP
-To-DO
+```c
+#include <ublox_sara_r4.h>
+
+Ublox_sara_r4 ublox = Ublox_sara_r4();
+
+char *server = "host";
+uint16_t port = 1234;
+int sockId = -1;
+
+void setup() {
+  Log_info("Begin...");
+  
+  ublox.powerOn();
+  Log_info("Waitting for module to alvie...");
+  while(false == ublox.isAlive()) {
+    Log(".");
+    delay(100);
+  }  
+  Logln("");
+
+  Log_info("Initializing network..");
+  while(!ublox.network_Init(30000)) { 
+    Log_error("Network initialize timeout.");
+  }
+  Log_info("APN: " + String(ublox._apn));
+  Log_info("Local IP: " + String(ublox.ip_string));
+  Log_info("Operator: " + String(ublox._operator));
+  Log_info("Network attached.");
+  
+  if(-1 == (sockId = ublox.createSocket(UDP))) {
+    Log_error("Create socket error!");
+  }
+  Log("[INFO] Create socket id: ");
+  Logln(sockId);
+
+  ublox.enableDirectLinkMode();
+  if(!ublox.sockConnect(sockId, server, port)) {
+    Log_error("connect to server failed.");
+  }
+  Log_info("Sent UDP message in direct link mode.");
+}  
+
+void loop() {
+  static uint8_t tries = 0;
+
+  String str_msg = "ublox random number " + String(random(0,100));
+
+  ublox.socketWrite((uint8_t *)str_msg.c_str(), (uint16_t)str_msg.length());
+  Log_info("Send msg: " + str_msg);
+
+  tries++;
+  if(tries > 5) {
+    if(ublox.sockClose(sockId)) {
+      Log_info("Close socket.");
+    }
+    while(true) AT_bypass();
+  }
+
+  delay(2000);
+}
+
+
+```
 
 #### Arduino Example HTTP
 To-DO
+
+#### Arduino Example MQTT Subscribe
+
+```c
+#include <Arduino.h>
+
+#include <math.h>
+
+#include <ublox_sara_r4.h>
+#include <ublox_sara_r4_mqtt.h>
+#include <UART_Interface.h>
+
+#define PRE_FIX  "[MQTT] "
+
+MQTT mqtt;
+Ublox_sara_r4 ublox = Ublox_sara_r4();
+
+char *server = "server name or IP";
+uint16_t port = 1883;
+char *topic = "Heat";
+
+void messageReceived(char* cb_topic, char* cb_msg) {
+  Logln(PRE_FIX"incoming msg: ");
+  Log("Topic: "); Logln(cb_topic);
+  Log("Msg: "); Logln(cb_msg);
+}
+
+void setup() {
+  Log_info("Begin...");
+  
+  ublox.powerOn();
+  Log_info("Waitting for module to alive...");
+  while(false == ublox.isAlive()) {
+    Log(".");
+    delay(100);
+  }
+  Logln();  
+
+  Log_info("Initializing network");  
+  if(!ublox.network_Init(30000)) { 
+    Log_error("Network initialize timeout.");
+    return;
+  }
+
+  // Set MQTT server 
+  if(mqtt.setServer(server, port)) {
+    Logln(PRE_FIX"Set mqtt server success.");
+  } else {
+    Log_error("Set mqtt server failed");
+  }
+  
+  // Set will
+  if(!mqtt.setWill("Heat", "ublox n/r410")) {
+    Log_error("Set MQTT will failed");
+    return;
+  } else {
+    Logln(PRE_FIX"Set MQTT will success.");
+  }
+
+  // Connect to server
+  Logln(PRE_FIX"Connecting to server: " + String(server));
+  while(!mqtt.connect()) {}
+  Logln(CRLF PRE_FIX"Connected\n\r");
+
+  // Set subscribe
+  if(mqtt.subscribe("Heat")) {
+    Logln(PRE_FIX"mqtt subscribe topic: " + String(topic));
+  } else {
+    Log_error("mqtt subscribe failed");
+  }
+
+  mqtt.onMessage(messageReceived);
+
+}  
+
+void loop() {  
+    if(mqtt.loop()) {
+    return;
+  }
+
+  if(mqtt.subscribe("Heat")) {
+    Logln(PRE_FIX"mqtt subscribe topic: " + String(topic));
+  } else {
+    Log_error("mqtt subscribe failed");
+  }
+
+}
+
+```
+
+#### Arduino Example MQTT Publish
+```c
+#include <Arduino.h>
+
+#include <math.h>
+
+#include <ublox_sara_r4.h>
+#include <ublox_sara_r4_mqtt.h>
+#include <UART_Interface.h>
+
+#define PRE_FIX  "[MQTT] "
+
+MQTT mqtt;
+Ublox_sara_r4 ublox = Ublox_sara_r4();
+
+char *server = "server name or IP";
+uint16_t port = 1883;
+
+void setup() {
+  Log_info("Begin...");
+  
+  ublox.powerOn();
+  Log_info("Waitting for module to alive...");
+  while(false == ublox.isAlive()) {
+    Log(".");
+    delay(100);
+  }  
+  Logln();
+
+  Log_info("Initializing network...");  
+  if(!ublox.network_Init()) { 
+    Log_error("Network initialize timeout.");
+    return;
+  }
+
+  // Set MQTT server 
+  if(!mqtt.setServer(server, port)) {
+    Log_error("Set MQTT server failed");
+    return;
+  } else {
+    Logln(PRE_FIX"Set MQTT server success.");
+  }
+
+  // Set will
+  if(!mqtt.setWill("Heat", "ublox n/r410")) {
+    Log_error("Set MQTT will failed");
+    return;
+  } else {
+    Logln(PRE_FIX"Set MQTT will success.");
+  }
+
+  // Connect to server
+  Logln(PRE_FIX"Connecting to server: " + String(server));
+  while(!mqtt.connect()) {}
+  Logln(CRLF PRE_FIX"Connected\n\r");
+}  
+
+void loop() 
+{        
+  static uint8_t tries = 0;  
+  const char *topic = "Heat";
+  String msg = String(random(2000, 3000)*1.0/100.0) + " degree";
+  
+    
+  if(mqtt.publish(topic, msg.c_str())) {
+    Logln(PRE_FIX" published Topic " + String(topic) + " Messagea " + msg);  
+  } else {
+    Log_error("MQTT publish failed");
+    // while(true);
+  }
+
+  tries++;
+  if(tries > 5)
+  {
+    if(mqtt.disconnect()) {
+      Logln(PRE_FIX"Disconnect.");
+    }
+    Log_info("Enter AT command loop");
+    while(true) AT_bypass();
+  }
+  
+  delay(2000);
+}
+
+
+```
+
+#### Arduino Example CoAP Client
+TO-DO
+
+#### Arduino Example CoAP Server
+TO-DO
 
 ### Using Espruino
 
