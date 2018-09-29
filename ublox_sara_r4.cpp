@@ -215,7 +215,7 @@ bool Ublox_sara_r4::set_CFUN(int mode)
 
 bool Ublox_sara_r4::AT_PowerDown(void)
 {
-  return check_with_cmd("AT+CPWROFF\n\r", "OK", CMD, 1, 2000);
+  return check_with_cmd("AT+CPWROFF\r\n", "OK", CMD, 1, 2000);
 } 
 
 void Ublox_sara_r4::GetRealTimeClock(char *time)
