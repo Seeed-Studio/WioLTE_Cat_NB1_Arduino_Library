@@ -33,6 +33,9 @@
 #include <Arduino.h>
 #include <UART_Interface.h>
 
+#include "CMSIS/cmsis_gcc.h"
+#include "CMSIS/core_cm4.h"
+
 #define STR_AT	"AT"
 #define STR_OK	"OK"
 #define STR_ERR	"ERROR"
@@ -61,26 +64,11 @@ enum CheckState {
     RET_ERR = false,
 };
 
-// Network registration status.
-enum NetworkRegistrationStatuses {
-    UnknownNetworkRegistrationStatus = 0,
-    Denied,
-    NoNetworkRegistrationStatus,
-    Home,
-    Roaming,
-};
-
-// FTP mode.
-enum FtpModes {
-    ActiveMode = 0,
-    PassiveMode,
-};
-
 class Ublox_sara_r4
 {
 	public:	
 		uint32_t _u32ip = 0;
-		char ip_string[20] = {'\0'};
+		char _str_ip[20] = {'\0'};
 		char _operator[32] = {'\0'};				
 		char _apn[32] = {'\0'};
 		char _user[32] = {'\0'};
@@ -117,8 +105,7 @@ class Ublox_sara_r4
 		void turnOffRGBPower(void);
 		void turnOnGNSSPower(void);
 		void turnOffGNSSPower(void);
-		void debugOn(void);
-		void debugOff(void);
+		void SystemReset(void);
 		
 		/************************** State Checking and Setting **************************/	
 		/**
@@ -127,58 +114,48 @@ class Ublox_sara_r4
 		bool initialAtCommands(void);
 
 		/**
-		 * turn off echo mode
+		 * Turn off echo mode
 		*/
 		bool disableEchoMode(void);
 
 		/**
 		 * Check SIM card status
-		 * @return
-		 * 	true for SIM ready
-		 * 	false for SIM not ready
+		 * @return true for SIM ready, false for SIM not ready
 		*/
 		bool checkSIMStatus(void);
 
 		/** 
 		 * Wait for network registration
-		 * @returns
-		 *  true on success
-		 *  false on error
+		 * @returns true on success, false on error
 		*/
 		bool waitForNetworkRegistered(uint16_t timeout_sec);
 
 		/** 
-		 * get Signal Strength from SIM900 (see AT command: AT+CSQ) as integer
-		 *  @param
-		 *  @returns
-		 *    true on success
-		 *    false on error
+		 * Get Signal Strength from SIM900 (see AT command: AT+CSQ)
+		 * @param signal store signal quality number into.
+		 * @return true on success, false on error
 		 */
 		bool getSignalStrength(int *signal);
 		
 		
 		/** 
 		 * Set phone functionarity mode
-		 * @param
-		 *      0, least consumption 1, 4
-		 *      1, standard mode
-		 *      4, shut down RF send and receive function
+		 * @param mode is the paramater for CFUN command.  
+		 *      0, sleep mode, use the least power consumption;
+		 *      1, full function mode;
+		 *      4, shut down RF send and receive function;
 		 */
 		bool set_CFUN(int mode);
 
-		/** Set module into sleep mode
-		 * @param
-		 * @return 
-		 *  true on sleep successfully
-		 *  false on sleep failed
+		/** 
+		 * Set module into sleep mode
+		 * @return true on sleep successfully, false on sleep failed
 		 */
 		bool module_sleep(void);
 
-		/** Set module wakeup from sleep mode
-		 * @param
-		 * @return 
-		 *  true on wakeup successfully
-		 *  false on wakeup failed
+		/** 
+		 * Set module wakeup from sleep mode
+		 * @return true on wakeup successfully, false on wakeup failed
 		 */
 		bool module_wakeup(void);
 
@@ -189,8 +166,8 @@ class Ublox_sara_r4
 
 		/**
 		 * Get real time clock
-		 * @param_in time
-		 * @return 
+		 * @param time is a string to store UTC type content
+		 * @return none
 		*/
 		void GetRealTimeClock(char *time);
 
@@ -202,51 +179,47 @@ class Ublox_sara_r4
 ////////////////////////////////////////////////////////////////
 ///// network, TCP, UDP 
 ////////////////////////////////////////////////////////////////
-		/** Check network registration status
-		 *  @returns
-		 *      0 on success
-		 *      -1 on error
+		/** 
+		 * Check network registration status
+		 * @return 0 on success, -1 on error
 		 */
-		bool network_Init(uint16 timeout_sec = 60);
+		bool network_Init(uint16_t timeout_sec = 60);
 
 		/**
 		 * +UGDCONT
 		 * 
 		*/
-		bool parse_ugdcont(void);
+		bool parse_cgdcont(void);
 
 		/**
-		 * Set APN 
+		 * Set APN
+		 * @param PDP_type can be "IP", "IPV4", "IPV4V6"
+		 * @param APN 
+		 * @param PDP_addr 
+		 * 
+		 * @return true for setting success, false for setting failed.
 		 */
-		// bool setAPN(char *APN, char *user, char *passwd);
-
-		/**
-		 * Connect to APN
-		 * TO-DO 
-		 */
-		// bool connectAPN();
+		bool setAPN(char* PDP_type, char *APN, char *PDP_addr = "");
 
 		/**
 		 * Get IP address
 		 */
-		bool getIPAddr();
+		bool getIPAddr(void);
 
 		/**
 		 * Get operator name
 		*/
-		bool getOperator();
+		bool getOperator(void);
 		
 
-		/** parse IP string
-		 *  @return
-		 *      ip in hex
+		/** 
+		 * Parse IP string
+		 * @return ip in hex
 		 */
 		uint32_t str_to_u32(const char* str);
 
 		// /** Check if socket connected
-		//  *  @returns
-		//  *          true on connected
-		//  *          false on disconnect
+		//  *  @returns true on connected, false on disconnect
 		//  */
 		// bool is_connected(void);
 
@@ -267,26 +240,26 @@ class Ublox_sara_r4
 		/**
 		 * Create socket and return socket id
 		 * 
-		 * @sock_type use TCP or UDP to create the socket type
-		 * @port local port for socket
+		 * @param sock_type use TCP or UDP to create the socket type
+		 * @param port local port for socket
 		 * @return socket id
 		*/
 		int createSocket(Socket_type sock_type, uint16_t port = 0);
 
 		/**
 		 * Set host server by ip/domain and port, then connect to the server 
-		 * 
-		 * @host server ip or domain
-		 * @port server port
-		 * @return - return true for success, false for failure.
+		 * @param sockid is local socket id
+		 * @param host is remote server ip or domain
+		 * @param port is remote server port
+		 * @return true for success, false for failure
 		*/
 		bool sockConnect(uint8_t sockid, char *host, uint16_t port);
 
 		/**
 		 * Close connected socket
 		 * 
-		 * @sockid socket id will be closed
-		 * @return - return true for success, false for failure.
+		 * @param sockid socket id will be closed
+		 * @return true for success, false for failure.
 		*/
 
 		bool sockClose(int sockid);
@@ -301,9 +274,9 @@ class Ublox_sara_r4
 		/**
 		 * Write one byte data to opened socket
 		 * 
-		 * @sockid socket id created before 
-		 * @oneByte one byte will be sent to remote
-		 * @return - return true for success, false for failure.
+		 * @param sockid socket id created before 
+		 * @param oneByte one byte will be sent to remote
+		 * @return true for success, false for failure.
 		 * 
 		*/
 		bool socketWrite(uint8_t sockid, char oneByte);
@@ -311,10 +284,10 @@ class Ublox_sara_r4
 		/**
 		 * Write data to opened socket
 		 * 
-		 * @sockid socket id created before 
-		 * @data data array will be sent to remote
-		 * @dataSize
-		 * @return - return true for success, false for failure.
+		 * @param sockid socket id created before 
+		 * @param data data array will be sent to remote
+		 * @param dataSize
+		 * @return true for success, false for failure.
 		 * 
 		*/
 		bool socketWrite(uint8_t sockid, char *data, uint16_t dataSize);
@@ -322,8 +295,8 @@ class Ublox_sara_r4
 		/**
 		 * Write one byte data to opened socket
 		 * 
-		 * @data data array will be sent to remote
-		 * @dataSize
+		 * @param data data array will be sent to remote
+		 * @param dataSize
 		 * @return - none
 		 * 
 		*/
@@ -332,7 +305,7 @@ class Ublox_sara_r4
 		/**
 		 * Write one byte to opened socket
 		 * 
-		 * @data one byte will be sent to remote
+		 * @param data one byte will be sent to remote
 		 * @return - none
 		 * 
 		*/
@@ -341,24 +314,25 @@ class Ublox_sara_r4
 		/**
 		 * Send udp message once
 		 * 
-		 * @sockid - socket id created before.
-		 * @ip - remote server ip address to send message to.
-		 * @port - remote server port. 
-		 * @message - one byte to send.
+		 * @param sockid - socket id created before.
+		 * @param host - remote server ip address to send message to.
+		 * @param port - remote server port. 
+		 * @param oneByte - one byte to send.
 		 * 
-		 * @return - return true for success, false for failure.
+		 * @return true for success, false for failure.
 		*/
 		bool udpSendTo(uint8_t sockid, char *host, uint16_t port, char oneByte);
 		
 		/**
 		 * Send udp message once.
 		 * 
-		 * @sockid - socket id created before.
-		 * @ip - remote server ip address to send message to.
-		 * @port - remote server port. 
-		 * @message - Content to send.
+		 * @param sockid - socket id created before.
+		 * @param host - remote server ip address to send message to.
+		 * @param port - remote server port. 
+		 * @param data - Content to send.
+		 * @param dataSize length of data to be sent
 		 * 
-		 * @return - return true for success, false for failure.
+		 * @return true for success, false for failure.
 		*/
 		bool udpSendTo(uint8_t sockid, char *host, uint16_t port, char *data, uint16_t dataSize);
 

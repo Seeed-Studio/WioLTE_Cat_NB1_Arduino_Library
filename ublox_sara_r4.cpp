@@ -109,32 +109,37 @@ void Ublox_sara_r4::turnOffGNSSPower(void)
   digitalWrite(GNSS_PWR_PIN, LOW);
 }
 
+void Ublox_sara_r4::SystemReset(void)
+{
+  NVIC_SystemReset();
+}
+
 bool Ublox_sara_r4::initialAtCommands(void)
 {
 
   // turn echo off
-  //  if(RET_OK != disableEchoMode()) {
-  //    return false;
-  //  }
+   if(RET_OK != disableEchoMode()) {
+     return false;
+   }
 
   // verbose error messages
   if( RET_OK != check_with_cmd("AT+CMEE=2\r\n", "OK", CMD)) {
-      return false;
+    return false;
   }
 
   // enable network identification LED
   if( RET_OK != check_with_cmd("AT+UGPIOC=16,2\r\n", "OK", CMD)) {
-      return false;
+    return false;
   }
 
   // enable mosule power state identification LED
   if( RET_OK != check_with_cmd("AT+UGPIOC=23,10\r\n", "OK", CMD)) {
-      return false;
+    return false;
   }
 
   // SIM check
   if (RET_OK != checkSIMStatus()) {
-      return false;
+    return false;
   }
 
   return true;
@@ -152,7 +157,7 @@ bool Ublox_sara_r4::disableEchoMode(void)
 
 bool Ublox_sara_r4::checkSIMStatus(void)
 {
-    return check_with_cmd("AT+CPIN?\r\n", "+CPIN: READY", CMD);
+  return check_with_cmd("AT+CPIN?\r\n", "+CPIN: READY", CMD);
 }
 
 bool Ublox_sara_r4::waitForNetworkRegistered(uint16_t timeout_sec)
@@ -169,6 +174,7 @@ bool Ublox_sara_r4::waitForNetworkRegistered(uint16_t timeout_sec)
         if(IS_TIMEOUT(timeStart, timeout_sec * 1000UL)) {
           return false;
         }
+        Log(".");
     }while(!pass);    
 
   return true;
@@ -180,29 +186,53 @@ bool Ublox_sara_r4::getSignalStrength(int *signal)
   //+CSQ: <rssi>,<ber>            --> CRLF + 5 + CRLF = 9                     
   //OK                            --> CRLF + 2 + CRLF =  6
 
-    byte i = 0;
-    char Buffer[26];
-    char *p, *s;
-    char buffers[4];
-    flush_serial();
-    send_cmd("AT+CSQ\r");
-    clean_buffer(Buffer, 26);
-    read_buffer(Buffer, 26);
-    if (NULL != (s = strstr(Buffer, "+CSQ:"))) {
-        s = strstr((char *)(s), " ");
-        s = s + 1;  //We are in the first phone number character 
-        p = strstr((char *)(s), ","); //p is last character """
-        if (NULL != s) {
-            i = 0;
-            while (s < p) {
-                buffers[i++] = *(s++);
-            }
-            buffers[i] = '\0';
-        }
-        *signal = atoi(buffers);
-        return true;
-    }
+  // byte i = 0;
+  int quality;
+  char *p;
+  char rxBuf[26] = {'\0'};
+  // char *p, *s;
+  // char buffers[4];
+
+  flush_serial();
+  clean_buffer(rxBuf, 26);
+  
+  send_cmd("AT+CSQ\r\n");
+  read_buffer(rxBuf, 26);
+  
+
+  if (NULL == (p = strstr(rxBuf, "+CSQ:"))) {
     return false;
+  }
+
+  // s = strstr((char *)(s), " ");
+  // s = s + 1;  //We are in the first phone number character 
+  // p = strstr((char *)(s), ","); //p is last character """
+  // if (NULL != s) {
+  //     i = 0;
+  //     while (s < p) {
+  //         buffers[i++] = *(s++);
+  //     }
+  //     buffers[i] = '\0';
+  // }
+  // *signal = atoi(buffers);
+
+  
+  if(1 != sscanf(p, "+CSQ: %d,%*d", &quality)) {
+    return false;
+  }
+    
+  if (quality == 0) *signal = -113;
+	else if (quality == 1) *signal = -111;
+	else if (2 <= quality && quality <= 30) *signal = (int)map(quality, 2, 30, -109, -53);
+	else if (quality == 31) *signal = -51;
+	else if (quality == 99) *signal = -999;
+	else if (quality == 100) *signal = -116;
+	else if (quality == 101) *signal = -115;
+	else if (102 <= quality && quality <= 190) *signal = (int)map(quality, 2, 30, -109, -53);
+	else if (quality == 191) *signal = -25;
+	else if (quality == 199) *signal = -999;
+
+  return true;
 }
 
 bool Ublox_sara_r4::set_CFUN(int mode)
@@ -248,8 +278,7 @@ void Ublox_sara_r4::GetRealTimeClock(char *time)
 
 bool Ublox_sara_r4::isAlive(void)
 {
-  bool retVal = check_with_cmd("AT\r\n", "OK", CMD, 1UL);
-  return  retVal;
+  return check_with_cmd("AT\r\n", "OK", CMD, 1UL);
 }
 
 bool Ublox_sara_r4::network_Init(uint16 timeout_sec)
@@ -273,7 +302,7 @@ bool Ublox_sara_r4::network_Init(uint16 timeout_sec)
     if(!waitForNetworkRegistered(timeout_sec)) return false;
     
     //Synchronize the current PDP content
-    if(!parse_ugdcont()) return false;
+    if(!parse_cgdcont()) return false;
 
     // Get operator name
     if(!getOperator()) return false;
@@ -281,7 +310,7 @@ bool Ublox_sara_r4::network_Init(uint16 timeout_sec)
     return true;
 }
 
-bool Ublox_sara_r4::parse_ugdcont(void)
+bool Ublox_sara_r4::parse_cgdcont(void)
 {
   char *p;
   char recvBuffer[128] = {'\0'};    
@@ -300,7 +329,7 @@ bool Ublox_sara_r4::parse_ugdcont(void)
     if(5 == (sscanf(p, "+CGDCONT: %*d,\"IP\",\"%[^\"]\",\"%d.%d.%d.%d\",%*d,%*d,%*d,%*d", _apn, &a0, &a1, &a2, &a3)))
     {
       _u32ip = TUPLE_TO_U32IP(a0, a1, a2, a3);
-      sprintf(ip_string, IP_FORMAT, a0, a1, a2, a3);
+      sprintf(_str_ip, IP_FORMAT, a0, a1, a2, a3);
     }
   }    
   else{
@@ -311,12 +340,36 @@ bool Ublox_sara_r4::parse_ugdcont(void)
 }
 
 
-bool setAPN(char *APN, char *user, char *passwd)
+bool Ublox_sara_r4::setAPN(char* PDP_type, char *APN, char *PDP_addr)
+// bool joinAPN()
 {
   // TO-DO has not found AT commands for setting APN
-  //AT+CGDCONT=
+  //1. Set APN, AT+CGDCONT="PDP_type","APN","PDP_addr"
+  //2. Deregister network to enable setting, AT+COPS=2
+  //3. Register network, AT+COPS=0
+
+  char txBuf[64] = {'\0'};
+
+  // Set APN
+  sprintf(txBuf, "AT+CGDCONT=1,\"%s\",\"%s\",\"%s\"\r\n", PDP_type, APN, PDP_addr);
+  if(!check_with_cmd(txBuf, "OK", CMD, 2)) {
+    return false;
+  }
+
+  // Deregister network
+  if(!check_with_cmd("AT+COPS=2\r\n", "OK", CMD, 5)) {
+    return false;
+  }
+
+  // Register network
+  if(!check_with_cmd("AT+COPS=0\r\n", "OK", CMD, 5)) {
+    return false;
+  }
+  
+  return true;
    
 }
+
 
 bool Ublox_sara_r4::getIPAddr()
 {
@@ -334,7 +387,7 @@ bool Ublox_sara_r4::getIPAddr()
     if(4 == sscanf(p, "+CGPADDR: %*d,%d.%d.%d.%d", &a0, &a1, &a2, &a3))
     {      
       _u32ip = TUPLE_TO_U32IP(a0, a1, a2, a3);
-      sprintf(ip_string, IP_FORMAT, a0, a1, a2, a3);
+      sprintf(_str_ip, IP_FORMAT, a0, a1, a2, a3);
     }
   }
   else
