@@ -22,19 +22,19 @@ void setup() {
     Log_error("Join APN error!");
   }
 
-	Log_info("Initialize network...");
+  Log_info("Initialize network...");
   if(!ublox.network_Init())
   {
     Log_error("Network initialize failed!");
   }
-	else 
-	{		
-		Log_info("Network attached.");
-	}
+  else 
+  {		
+    Log_info("Network attached.");
+  }
 
-	Log_info("APN: " + String(ublox._apn));
-	Log_info("Local IP: " + String(ublox._str_ip));
-	Log_info("Operator: " + String(ublox._operator));
+  Log_info("APN: " + String(ublox._apn));
+  Log_info("Local IP: " + String(ublox._str_ip));
+  Log_info("Operator: " + String(ublox._operator));
 
   Log_info("Start AT commands loop");
   
