@@ -42,25 +42,40 @@
 
 typedef void (*MQTTClientCallback)(char* topic, char* payload);
 
-class MQTTPacketInfo
-{
-  public:
-    char *_topic;
-    char *_msg;
-    bool _dup;
-    uint8_t _qos;
-    bool _retain;
-    uint16_t _msg_id;
-};
-
 class MQTT
 {
 public:
     MQTT();
+    /**
+     * Pre-set MQTT server.
+     * @param server Remote host ip or domain in string.
+     * @param port Remote MQTT server port.
+     * @return true for success, false for error.
+    */
     bool setServer(char * server, uint16_t port = 1883);
+
+    /**
+     * Set local MQTT client ID.
+     * @param clientId Local MQTT client ID in string.
+     * @return true for success, false for error.
+    */
     bool setClientId(char *clientId);
+
+    /**
+     * Set MQTT authentication
+     * @param userName User name for MQTT client.
+     * @param passwd password for MQTT client.
+     * @return true for success, false for error.
+    */
     bool setAuth(char * userName, char * passwd);
+
+    /**
+     * Set MQTT connection inactive time, when time's up, connection will be down.
+     * @param timeout 
+     * @return true for success, false for error.
+    */
 		bool setInactiveTimeout(uint16_t timeout);
+
 		bool setSecureOpt(uint8_t secure, uint8_t use_profile);
 		bool clearSession(uint8_t clear);
     
