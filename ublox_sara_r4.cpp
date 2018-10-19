@@ -109,6 +109,11 @@ void Ublox_sara_r4::turnOffGNSSPower(void)
   digitalWrite(GNSS_PWR_PIN, LOW);
 }
 
+bool Ublox_sara_r4::reboot(void)
+{
+  return check_with_cmd("AT+CFUN=15\r\n", "OK", CMD);
+}
+
 void Ublox_sara_r4::SystemReset(void)
 {
   NVIC_SystemReset();
@@ -343,10 +348,8 @@ bool Ublox_sara_r4::parse_cgdcont(void)
 bool Ublox_sara_r4::setAPN(char* PDP_type, char *APN, char *PDP_addr)
 // bool joinAPN()
 {
-  // TO-DO has not found AT commands for setting APN
   //1. Set APN, AT+CGDCONT="PDP_type","APN","PDP_addr"
-  //2. Deregister network to enable setting, AT+COPS=2
-  //3. Register network, AT+COPS=0
+  //2. reboot module
 
   char txBuf[64] = {'\0'};
 
@@ -356,18 +359,8 @@ bool Ublox_sara_r4::setAPN(char* PDP_type, char *APN, char *PDP_addr)
     return false;
   }
 
-  // Deregister network
-  if(!check_with_cmd("AT+COPS=2\r\n", "OK", CMD, 5)) {
-    return false;
-  }
-
-  // Register network
-  if(!check_with_cmd("AT+COPS=0\r\n", "OK", CMD, 5)) {
-    return false;
-  }
-  
-  return true;
-   
+  // reboot module
+  return reboot();
 }
 
 

@@ -105,6 +105,15 @@ class Ublox_sara_r4
 		void turnOffRGBPower(void);
 		void turnOnGNSSPower(void);
 		void turnOffGNSSPower(void);
+
+		/**
+		 * SARA R4 module reboot 
+		*/
+		bool reboot(void);
+
+		/**
+		 * MCU reboot
+		*/
 		void SystemReset(void);
 		
 		/************************** State Checking and Setting **************************/	
