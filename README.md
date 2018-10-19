@@ -104,7 +104,7 @@ The Wio LTE Cat NB1 is combined with **STM32F405RGT6** and external **ublox MAX 
         - [Grove Ralay](#grove-ralay)
         - [Grove Light Sensor](#grove-light-sensor)
         - [Grove GPS](#grove-gps)
-        - [Grove 3Axis Digital Accerlerometer(±16g)](#grove-3axis-digital-accerlerometer%C2%B116g)
+        - [Grove 3Axis Digital Accerlerometer(±16g)](#grove-3axis-digital-accerlerometer16g)
         - [Grove Servo](#grove-servo)
         - [Grove Temperature&Humidity Senseor](#grove-temperaturehumidity-senseor)
       - [Javascript APIs](#javascript-apis)
@@ -441,7 +441,7 @@ void setup() {
     Log_error("Network initialize timeout.");
   }
   Log_info("APN: " + String(ublox._apn));
-  Log_info("Local IP: " + String(ublox.ip_string));
+  Log_info("Local IP: " + String(ublox._str_ip));
   Log_info("Operator: " + String(ublox._operator));
   Log_info("Network attached.");
 
@@ -508,7 +508,7 @@ void setup() {
     Log_error("Network initialize timeout.");
   }
   Log_info("APN: " + String(ublox._apn));
-  Log_info("Local IP: " + String(ublox.ip_string));
+  Log_info("Local IP: " + String(ublox._str_ip));
   Log_info("Operator: " + String(ublox._operator));
   Log_info("Network attached.");
   
