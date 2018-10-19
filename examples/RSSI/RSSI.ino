@@ -11,12 +11,15 @@ void setup() {
   while(false == ublox.isAlive()){
     SerialDebug.print(".");
     delay(100);
-  }  
-  SerialDebug.println("Power On O.K!");
-
-  delay(100);
-  check_with_cmd("AT+UGPIOC=23,10\r\n", "OK", CMD);
-  check_with_cmd("AT+UGPIOC=16,2\r\n", "OK", CMD);
+  } 
+  
+  while(!ublox.network_Init(30000)) { 
+		Log_error("Network initialize timeout.");
+	}
+	Log_info("APN: " + String(ublox._apn));
+	Log_info("Local IP: " + String(ublox._str_ip));
+	Log_info("Operator: " + String(ublox._operator));
+	Log_info("Network attached.");  
 }
 
 void loop() {
