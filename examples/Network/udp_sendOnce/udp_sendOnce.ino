@@ -23,7 +23,7 @@ void setup() {
 		return;
 	}
 	Log_info("APN: " + String(ublox._apn));
-	Log_info("Local IP: " + String(ublox.ip_string));
+	Log_info("Local IP: " + String(ublox._str_ip));
 	Log_info("Operator: " + String(ublox._operator));
 	Log_info("Network attached.");
 	
