@@ -17,6 +17,7 @@ void setup() {
     Log_error("Failed to initialzie module.");
   }
 
+  Log_info("Set APN.");
   if(!ublox.setAPN("IP", "CMNBIOT1"))
   {
     Log_error("Join APN error!");
