@@ -34,22 +34,22 @@
 
 void init_AtTransport()
 {
-    SerialModule.begin(115200);
+    SerialGSM.begin(115200);
 }
 
 void AT_bypass()
 {
-    while(SerialModule.available()){
-        SerialDebug.write(SerialModule.read());
+    while(SerialGSM.available()){
+        SerialDebug.write(SerialGSM.read());
     }
     while(SerialDebug.available()){
-        SerialModule.write(SerialDebug.read());
+        SerialGSM.write(SerialDebug.read());
     }
 }
 
 int check_readable()
 {
-    return SerialModule.available();
+    return SerialGSM.available();
 }
 
 int wait_readable (int wait_time_sec)
@@ -75,7 +75,7 @@ void dumpData(uint8_t *data, uint16_t dataSize)
 void flush_serial()
 {
     while(check_readable()){
-        debugPrint(SerialModule.read());
+        debugPrint(SerialGSM.read());
     }
 }
 
@@ -88,7 +88,7 @@ uint16_t read_string_line(char *buffer, int count, unsigned int timeout, unsigne
     now = 0;
     while(1) {
         while (check_readable()) {
-            char c = SerialModule.read();
+            char c = SerialGSM.read();
             now = millis();
             buffer[i++] = c;
             if( (i >= count) || ('\n' == c) || ('\0' == c) ) break;
@@ -117,7 +117,7 @@ uint16_t read_string_until(char *buffer, int count, char *pattern, unsigned int 
     now = 0;
     while(1) {
         if(check_readable()) {
-            char c = SerialModule.read();
+            char c = SerialGSM.read();
             now = millis();
             buffer[i++] = c;
             if(i >= count)break;
@@ -145,7 +145,7 @@ uint16_t read_buffer(uint8_t *buffer, uint16_t count, uint16_t timeout, uint16_t
     now = 0;
     while(1) {
         if(check_readable()) {
-            char c = SerialModule.read();
+            char c = SerialGSM.read();
             debugPrint(c);
             now = millis();
             buffer[i++] = c;
@@ -172,7 +172,7 @@ uint16_t read_buffer(char *buffer, uint16_t count, uint16_t timeout, uint16_t ch
     now = 0;
     while(1) {
         if(check_readable()) {
-            char c = SerialModule.read();
+            char c = SerialGSM.read();
             debugPrint(c);
             now = millis();
             buffer[i++] = c;
@@ -200,12 +200,12 @@ void clean_buffer(char *buffer, int count)
 //HACERR quitar esta funcion ?
 void send_byte(uint8_t data)
 {
-    SerialModule.write(data);
+    SerialGSM.write(data);
 }
 
 void send_char(const char c)
 {
-    SerialModule.write(c);
+    SerialGSM.write(c);
 }
 
 void send_cmd(const char* cmd)
@@ -239,7 +239,7 @@ bool wait_for_resp(const char* resp, DataType type, unsigned int timeout_sec, un
 
     while(1) {
         if(check_readable()) {
-            char c = SerialModule.read();            
+            char c = SerialGSM.read();            
             debugPrint(c);
             timerPreChar = millis();
             sum = (c==resp[sum]) ? sum+1 : 0;
@@ -268,7 +268,7 @@ bool wait_for_resp_dot(const char* resp, DataType type, unsigned int timeout_sec
 
     while(true) {
         if(check_readable()) {
-            char c = SerialModule.read();            
+            char c = SerialGSM.read();            
             debugPrint(c);
             sum = (c==resp[sum]) ? sum+1 : 0;
             if(sum == len)break;
