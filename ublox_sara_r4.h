@@ -135,6 +135,7 @@ class Ublox_sara_r4
 
 		/** 
 		 * Wait for network registration
+		 * @param timeout_sec, when timeout_sec arrived program jump out of the loop checking.
 		 * @returns true on success, false on error
 		*/
 		bool waitForNetworkRegistered(uint16_t timeout_sec);
