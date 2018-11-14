@@ -7,6 +7,8 @@ uint16_t port = 1234;
 int sockId = -1;
 
 void setup() {
+	bool network_attached = false;
+
 	Log_info("Begin...");
 	
 	ublox.powerOn();
@@ -17,9 +19,10 @@ void setup() {
 	} 
 	Logln(); 
 
-	Log_info("Initializing network...");
-	while(!ublox.network_Init(30000)) { 
+	Log_info("Initializing network..");
+	if(!ublox.network_Init(30)) { 
 		Log_error("Network initialize timeout.");
+		while(1);
 	}
 	Log_info("APN: " + String(ublox._apn));
 	Log_info("Local IP: " + String(ublox._str_ip));
