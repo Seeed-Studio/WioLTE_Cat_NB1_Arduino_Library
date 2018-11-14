@@ -178,12 +178,18 @@ class Ublox_sara_r4
 		 * @param time is a string to store UTC type content
 		 * @return none
 		*/
-		void GetRealTimeClock(char *time);
+		void getRealTimeClock(char *time);
 
 		/**
 		 * Check if module alive
 		*/
 		bool isAlive(void);
+
+
+		/**
+		 * Get battery level, return million volt value.
+		*/
+		uint16_t batteryMillionVolt();
 
 ////////////////////////////////////////////////////////////////
 ///// network, TCP, UDP 

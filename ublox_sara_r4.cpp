@@ -253,7 +253,7 @@ bool Ublox_sara_r4::AT_PowerDown(void)
   return check_with_cmd("AT+CPWROFF\r\n", "OK", CMD, 1, 2000);
 } 
 
-void Ublox_sara_r4::GetRealTimeClock(char *time)
+void Ublox_sara_r4::getRealTimeClock(char *time)
 {
   int i = 0;
   char *p;
@@ -284,6 +284,23 @@ void Ublox_sara_r4::GetRealTimeClock(char *time)
 bool Ublox_sara_r4::isAlive(void)
 {
   return check_with_cmd("AT\r\n", "OK", CMD, 1UL);
+}
+
+uint16_t Ublox_sara_r4::batteryMillionVolt(void)
+{
+  // The battery pin measures half of the battery value,
+  // We need to times 2 to get the whole battery value.
+
+  // 1. Set the default reference voltage to 3268 mV,
+  // 2. Default 12-Bits-adc maxinum level is 4095,
+
+  uint16_t value = 0;
+  uint16_t ref = 3268;  
+
+  pinMode(BAT_C_PIN, INPUT_ANALOG);
+  value = analogRead(BAT_C_PIN);
+
+  return (uint16_t)(analogRead(BAT_C_PIN)*ref/4095*2);
 }
 
 bool Ublox_sara_r4::network_Init(uint16 timeout_sec)

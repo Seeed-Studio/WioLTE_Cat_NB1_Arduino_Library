@@ -44,7 +44,7 @@
 #define DEFAULT_INTERCHAR_TIMEOUT (3000UL)   //miliseconds
 
 #define SerialGrove  Serial   // UART1
-#define SerialModule Serial1   // UART2
+#define SerialGSM    Serial1   // UART2
 #define SerialGNSS   Serial2   // UART3
 #define SerialDebug  SerialUSB // USB port
 #define SerialGNSS_BAUDRATE	9600
