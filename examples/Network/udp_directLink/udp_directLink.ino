@@ -20,7 +20,7 @@ void setup() {
 	Logln("");
 
 	Log_info("Initializing network..");
-	if(!ublox.network_Init(30)) { 
+	if(!ublox.network_Init(120)) { 
 		Log_error("Network initialize timeout.");
 		while(1);
 	}
