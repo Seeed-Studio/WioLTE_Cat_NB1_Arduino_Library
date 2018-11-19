@@ -300,7 +300,7 @@ uint16_t Ublox_sara_r4::batteryMillionVolt(void)
   pinMode(BAT_C_PIN, INPUT_ANALOG);
   value = analogRead(BAT_C_PIN);
 
-  return (uint16_t)(analogRead(BAT_C_PIN)*ref/4095*2);
+  return (uint16_t)(value*ref*2/4095);
 }
 
 bool Ublox_sara_r4::network_Init(uint16 timeout_sec)
