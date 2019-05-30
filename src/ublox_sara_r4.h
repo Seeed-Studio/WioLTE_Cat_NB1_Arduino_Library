@@ -183,8 +183,9 @@ class Ublox_sara_r4
 
 		/**
 		 * Check if module alive
+		 * @param timeout, check alive timeout in millis seconds
 		*/
-		bool isAlive(void);
+		bool isAlive(uint32_t timeout = 5000);
 
 
 		/**

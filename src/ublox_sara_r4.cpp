@@ -38,9 +38,9 @@ void peripherial_Init()
 	/**
 	 * Setting all GPIO to input mode, that avoid power wasting from GPIO
 	*/
-  for(int i=0; i<64;  i++) {
-      pinMode(i, INPUT);
-  }      
+  // for(int i=0; i<64;  i++) {
+  //     pinMode(i, INPUT);
+  // }      
 }
 
 Ublox_sara_r4::Ublox_sara_r4()
@@ -281,9 +281,25 @@ void Ublox_sara_r4::getRealTimeClock(char *time)
 }
 
 
-bool Ublox_sara_r4::isAlive(void)
+bool Ublox_sara_r4::isAlive(uint32_t timeout)
 {
-  return check_with_cmd("AT\r\n", "OK", CMD, 1UL);
+  uint32_t timeStart = millis();
+
+  while(true)
+  {
+    if(check_with_cmd("AT\r\n", "OK", CMD, 1UL))
+    {
+      Logln();
+      break;
+    }
+    
+    if(IS_TIMEOUT(timeStart, timeout))
+    {      
+      return false;
+    }
+    Log(".");
+  }
+  return true;
 }
 
 uint16_t Ublox_sara_r4::batteryMillionVolt(void)
