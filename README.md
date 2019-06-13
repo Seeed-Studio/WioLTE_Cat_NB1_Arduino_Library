@@ -1088,11 +1088,6 @@ For more info, please refer to [Wio_LTE_Module](http://www.espruino.com/modules/
 - geoLocGet(callback) - Get last location
 - geoLocConvert(callback(err,latlong)) - Get last location as latitude/longitude
 - board.SMS - SMS functionality with init/read/send/list/delete functions based on the [[ATSMS]] module
-- board.Call, with:
-  - call(number, callback)
-  - answer(callback)
-  - hangup(callback)
-  - handleRing(boolean) - if trie, will call any function added with board.on('RING', ...)
 - sleep(callback) -  LTE modem get into sleep mode, it can save about 100mA
 - wake(callback) -  LTE modem wake up from sleep mode
 
