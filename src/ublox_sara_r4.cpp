@@ -175,7 +175,7 @@ bool Ublox_sara_r4::waitForNetworkRegistered(uint16_t timeout_sec)
     do {
         pass = check_with_cmd("AT+CGATT?\r\n","+CGATT: 1", CMD) && 
                ( check_with_cmd("AT+CEREG?\r\n","+CEREG: 0,1", CMD) ||
-                 check_with_cmd("AT+CEREG?\r\n","+CREG: 0,5", CMD));
+                 check_with_cmd("AT+CEREG?\r\n","+CEREG: 0,5", CMD));
         if(IS_TIMEOUT(timeStart, timeout_sec * 1000UL)) {
           return false;
         }
