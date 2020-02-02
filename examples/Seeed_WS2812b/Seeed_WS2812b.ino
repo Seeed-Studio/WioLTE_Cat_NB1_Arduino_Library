@@ -7,13 +7,13 @@ Ublox_sara_r4 ublox = Ublox_sara_r4();
 WS2812 strip = WS2812(LEN_NUM, ublox.RGB_LED_PIN);
 
 void setup() {
-  // Set RGB LED power pin high
-  ublox.turnOnRGBPower();
-  strip.begin();
-  strip.brightness = 20;
+    // Set RGB LED power pin high
+    ublox.turnOnRGBPower();
+    strip.begin();
+    strip.brightness = 20;
 }
 
-void loop() {  
-  strip.RGBCycle(1000);   
-  strip.rainbowCycle(20);
+void loop() {
+    strip.RGBCycle(1000);
+    strip.rainbowCycle(20);
 }

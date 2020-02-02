@@ -9,8 +9,8 @@ void setup() {
 }
 
 void loop() {
-  Log_info("Start");
-  delay(2000);
+    Log_info("Start");
+    delay(2000);
 
-  nbIoT.SystemReset();
+    nbIoT.SystemReset();
 }

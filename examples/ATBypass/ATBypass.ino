@@ -3,27 +3,25 @@
 
 Ublox_sara_r4 ublox;
 
-void setup() {  
-  delay(200);
-  Log_info("## AT bypass demo");
-  
-  ublox.powerOn();
+void setup() {
+    delay(200);
+    Log_info("## AT bypass demo");
 
-  Log_info("Waitting for module to alvie...");
-  if(!ublox.isAlive(10000))
-  {
-    Log_error("Check alive timeout");
-    return;
-  }
+    ublox.powerOn();
 
-  if(!ublox.initialAtCommands()) 
-  {
-    Log_error("Failed to initialzie module."); 
-    return;  
-  }  
+    Log_info("Waitting for module to alvie...");
+    if (!ublox.isAlive(10000)) {
+        Log_error("Check alive timeout");
+        return;
+    }
+
+    if (!ublox.initialAtCommands()) {
+        Log_error("Failed to initialzie module.");
+        return;
+    }
 }
 
 void loop() {
-  /* Debug */
-  AT_bypass();
+    /* Debug */
+    AT_bypass();
 }
