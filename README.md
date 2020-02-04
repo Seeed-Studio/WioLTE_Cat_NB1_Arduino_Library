@@ -1,4 +1,4 @@
-
+  [![Build Status](https://travis-ci.com/Seeed-Studio/WioLTE_Cat_NB1_Arduino_Library.svg?branch=master)](https://travis-ci.com/Seeed-Studio/WioLTE_Cat_NB1_Arduino_Library)
 # Wio LTE Cat NB1
 
 The Wio LTE Cat NB1 is combined with **STM32F405RGT6** and external **ublox MAX MQ8** GNSS chip and the **ublox SARA-R4 LTE Cat NB1** cellular module.
