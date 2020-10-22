@@ -138,7 +138,7 @@ The Wio LTE Cat NB1 is combined with **STM32F405RGT6** and external **ublox MAX 
 - Step 2. Copy the URL below, open Arduino board manager install **Seeed STM32F4 Boards upon version 1.2.1**.
 
 ```
-https://raw.githubusercontent.com/Seeed-Studio/Seeed_Platform/master/package_seeeduino_boards_index.json
+https://raw.githubusercontent.com/Seeed-Studio/Seeed_Platform/master/package_legacy_seeeduino_boards_index.json
 ```
 
 <img src=https://raw.githubusercontent.com/lanselambor/WioLTE_Cat_NB1_Arduino_Library/master/img/boardManager.png width=600>
